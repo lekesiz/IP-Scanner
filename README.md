@@ -14,6 +14,10 @@ Modern ve kullanıcı dostu bir ağ tarama uygulaması. ARP protokolü kullanara
 - **Gerçek Zamanlı İzleme**: Sürekli ağ izleme modu
 - **Çoklu İş Parçacığı**: UI donma önleme
 - **Cache Sistemi**: Performans optimizasyonu
+- **Web Arayüzü**: Flask tabanlı modern web arayüzü
+- **REST API**: Harici uygulamalar için API endpoint'leri
+- **Ağ Haritası**: İnteraktif ağ topolojisi görselleştirmesi
+- **Ağ İstatistikleri**: Detaylı ağ analizi ve raporlama
 
 ## 📋 Gereksinimler
 
@@ -43,25 +47,42 @@ pip install -r requirements.txt
 
 ## 🎯 Kullanım
 
-### Temel Kullanım
+### Temel Kullanım (Masaüstü)
 ```bash
-python scanner.py
+python scanner.py      # V1 - Temel sürüm
+python scanner_v2.py   # V2 - Gelişmiş sürüm
 ```
+
+### Web Arayüzü (V3.1)
+```bash
+cd webapp
+python app.py
+```
+Tarayıcınızda `http://localhost:5000` adresine gidin.
 
 ### Gelişmiş Özellikler
 - **IP Aralığı Belirtme**: Varsayılan `192.168.1.0/24`
 - **Port Tarama**: Belirli portları kontrol etme
 - **Sonuçları Kaydetme**: CSV/JSON formatında dışa aktarma
 - **Filtreleme**: Cihaz türü, IP aralığı vb. filtreleme
+- **Ağ Haritası**: İnteraktif ağ topolojisi
+- **İstatistikler**: Detaylı ağ analizi
 
 ## 📁 Proje Yapısı
 
 ```
 IP-Scanner/
-├── scanner.py          # Ana uygulama
-├── scanner_v2.py       # Gelişmiş V2 sürümü
-├── setup.py           # Paketleme konfigürasyonu
+├── scanner.py          # V1 - Ana uygulama
+├── scanner_v2.py       # V2 - Gelişmiş sürüm
+├── webapp/             # V3.1 - Web arayüzü
+│   ├── app.py         # Flask uygulaması
+│   ├── network_visualizer.py  # Ağ görselleştirme
+│   ├── templates/     # HTML şablonları
+│   └── static/        # Statik dosyalar
+├── setup.py           # V1 paketleme
+├── setup_v2.py        # V2 paketleme
 ├── requirements.txt   # Python bağımlılıkları
+├── install.sh         # Kurulum scripti
 ├── README.md         # Bu dosya
 └── .gitignore        # Git ignore dosyası
 ```
@@ -89,6 +110,19 @@ IP-Scanner/
 - Yeni cihaz tespiti
 - Cihaz çıkış tespiti
 
+### Web Arayüzü (V3.1)
+- Modern Bootstrap arayüzü
+- REST API endpoint'leri
+- Ağ haritası görselleştirmesi
+- İnteraktif istatistikler
+- Responsive tasarım
+
+### Ağ Haritası
+- İnteraktif ağ topolojisi
+- Cihaz türlerine göre renk kodlaması
+- Router bağlantıları
+- Detaylı cihaz bilgileri
+
 ## 🚨 Güvenlik
 
 Bu uygulama sadece kendi ağınızda kullanılmalıdır. Başkalarının ağlarını izinsiz taramak yasal değildir.
@@ -113,4 +147,7 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 
 - [Scapy](https://scapy.net/) - Ağ paket manipülasyonu
 - [MAC Vendors API](https://api.macvendors.com/) - MAC vendor bilgileri
-- [Tkinter](https://docs.python.org/3/library/tkinter.html) - GUI framework 
+- [Tkinter](https://docs.python.org/3/library/tkinter.html) - GUI framework
+- [Flask](https://flask.palletsprojects.com/) - Web framework
+- [NetworkX](https://networkx.org/) - Ağ analizi
+- [Pyvis](https://pyvis.readthedocs.io/) - Ağ görselleştirme 
