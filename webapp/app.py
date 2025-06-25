@@ -15,7 +15,9 @@ scan_results = []
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Otomatik dil algılama
+    lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
+    return render_template('index.html', lang=lang)
 
 @app.route('/login')
 def login():
@@ -96,7 +98,15 @@ def api_settings():
     
     elif request.method == 'PUT':
         data = request.json
-        result = user_manager.update_user_settings(user_id, data)
+        
+        # Mevcut ayarları al
+        profile = user_manager.get_user_profile(user_id)
+        current_settings = profile['settings'] if profile else {}
+        
+        # Yeni ayarları mevcut ayarlarla birleştir
+        updated_settings = {**current_settings, **data}
+        
+        result = user_manager.update_user_settings(user_id, updated_settings)
         
         if result['success']:
             return jsonify(result)

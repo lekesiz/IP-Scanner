@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Scanner V3.4 - Giriş</title>
+    <title data-i18n="login_title">IP Scanner V3.4 - Giriş</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -63,6 +63,11 @@
             top: 20px;
             right: 20px;
         }
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
         .register-link {
             text-align: center;
             margin-top: 20px;
@@ -85,6 +90,14 @@
     </style>
 </head>
 <body>
+    <!-- Dil seçici -->
+    <div class="language-selector">
+        <select class="form-select form-select-sm" id="langSelect" style="width: 120px;" onchange="changeLang(this.value)">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
     <!-- Tema Değiştirme Butonu -->
     <div class="theme-toggle">
         <button class="btn btn-outline-light" onclick="toggleTheme()" id="themeToggle">
@@ -95,8 +108,8 @@
     <div class="login-container">
         <div class="login-header">
             <i class="fas fa-network-wired"></i>
-            <h2>IP Scanner V3.4</h2>
-            <p class="text-muted">Gelişmiş Ağ Tarayıcı</p>
+            <h2 data-i18n="app_title">IP Scanner V3.4</h2>
+            <p class="text-muted" data-i18n="app_subtitle">Gelişmiş Ağ Tarayıcı</p>
         </div>
 
         <!-- Hata/Success Mesajları -->
@@ -109,7 +122,7 @@
                     <span class="input-group-text">
                         <i class="fas fa-user"></i>
                     </span>
-                    <input type="text" class="form-control" id="username" placeholder="Kullanıcı Adı" required>
+                    <input type="text" class="form-control" id="username" data-i18n-placeholder="username" placeholder="Kullanıcı Adı" required>
                 </div>
             </div>
             
@@ -118,34 +131,34 @@
                     <span class="input-group-text">
                         <i class="fas fa-lock"></i>
                     </span>
-                    <input type="password" class="form-control" id="password" placeholder="Şifre" required>
+                    <input type="password" class="form-control" id="password" data-i18n-placeholder="password" placeholder="Şifre" required>
                 </div>
             </div>
             
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" id="rememberMe">
-                <label class="form-check-label" for="rememberMe">
+                <label class="form-check-label" for="rememberMe" data-i18n="remember_me">
                     Beni Hatırla
                 </label>
             </div>
             
             <button type="submit" class="btn btn-primary btn-login w-100">
-                <i class="fas fa-sign-in-alt"></i> Giriş Yap
+                <i class="fas fa-sign-in-alt"></i> <span data-i18n="login">Giriş Yap</span>
             </button>
         </form>
 
         <div class="register-link">
-            <p class="mb-0">Hesabınız yok mu? 
-                <a href="#" onclick="showRegisterForm()" class="text-decoration-none">Kayıt Ol</a>
+            <p class="mb-0" data-i18n="no_account">Hesabınız yok mu? 
+                <a href="#" onclick="showRegisterForm()" class="text-decoration-none" data-i18n="register">Kayıt Ol</a>
             </p>
         </div>
 
         <!-- Demo Bilgileri -->
         <div class="mt-4 p-3 bg-light rounded">
             <small class="text-muted">
-                <strong>Demo Giriş:</strong><br>
-                Kullanıcı Adı: <code>admin</code><br>
-                Şifre: <code>admin123</code>
+                <strong data-i18n="demo_login">Demo Giriş:</strong><br>
+                <span data-i18n="username_label">Kullanıcı Adı</span>: <code>admin</code><br>
+                <span data-i18n="password_label">Şifre</span>: <code>admin123</code>
             </small>
         </div>
     </div>
@@ -155,36 +168,36 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Yeni Hesap Oluştur</h5>
+                    <h5 class="modal-title" data-i18n="create_account">Yeni Hesap Oluştur</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="registerForm">
                         <div class="mb-3">
-                            <label for="regUsername" class="form-label">Kullanıcı Adı</label>
+                            <label for="regUsername" class="form-label" data-i18n="username">Kullanıcı Adı</label>
                             <input type="text" class="form-control" id="regUsername" required>
                         </div>
                         <div class="mb-3">
-                            <label for="regEmail" class="form-label">E-posta</label>
+                            <label for="regEmail" class="form-label" data-i18n="email">E-posta</label>
                             <input type="email" class="form-control" id="regEmail" required>
                         </div>
                         <div class="mb-3">
-                            <label for="regFullName" class="form-label">Ad Soyad</label>
+                            <label for="regFullName" class="form-label" data-i18n="full_name">Ad Soyad</label>
                             <input type="text" class="form-control" id="regFullName">
                         </div>
                         <div class="mb-3">
-                            <label for="regPassword" class="form-label">Şifre</label>
+                            <label for="regPassword" class="form-label" data-i18n="password">Şifre</label>
                             <input type="password" class="form-control" id="regPassword" required>
                         </div>
                         <div class="mb-3">
-                            <label for="regPasswordConfirm" class="form-label">Şifre Tekrar</label>
+                            <label for="regPasswordConfirm" class="form-label" data-i18n="password_confirm">Şifre Tekrar</label>
                             <input type="password" class="form-control" id="regPasswordConfirm" required>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="button" class="btn btn-primary" onclick="registerUser()">Kayıt Ol</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="registerUser()" data-i18n="register">Kayıt Ol</button>
                 </div>
             </div>
         </div>
@@ -193,9 +206,96 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentTheme = localStorage.getItem('theme') || 'light';
+        let lang = localStorage.getItem('lang') || 'tr';
+        
+        const translations = {
+            tr: {
+                'login_title': 'IP Scanner V3.4 - Giriş',
+                'app_title': 'IP Scanner V3.4',
+                'app_subtitle': 'Gelişmiş Ağ Tarayıcı',
+                'username': 'Kullanıcı Adı',
+                'password': 'Şifre',
+                'remember_me': 'Beni Hatırla',
+                'login': 'Giriş Yap',
+                'no_account': 'Hesabınız yok mu?',
+                'register': 'Kayıt Ol',
+                'demo_login': 'Demo Giriş:',
+                'username_label': 'Kullanıcı Adı',
+                'password_label': 'Şifre',
+                'create_account': 'Yeni Hesap Oluştur',
+                'email': 'E-posta',
+                'full_name': 'Ad Soyad',
+                'password_confirm': 'Şifre Tekrar',
+                'cancel': 'İptal',
+                'fill_all_fields': 'Lütfen tüm alanları doldurun',
+                'login_processing': 'Giriş Yapılıyor...',
+                'login_success': 'Giriş başarılı! Yönlendiriliyorsunuz...',
+                'login_error': 'Giriş hatası:',
+                'fill_required_fields': 'Lütfen gerekli alanları doldurun',
+                'passwords_not_match': 'Şifreler eşleşmiyor',
+                'register_success': 'Kayıt başarılı! Giriş yapabilirsiniz.',
+                'register_error': 'Kayıt hatası:'
+            },
+            en: {
+                'login_title': 'IP Scanner V3.4 - Login',
+                'app_title': 'IP Scanner V3.4',
+                'app_subtitle': 'Advanced Network Scanner',
+                'username': 'Username',
+                'password': 'Password',
+                'remember_me': 'Remember Me',
+                'login': 'Login',
+                'no_account': 'Don\'t have an account?',
+                'register': 'Register',
+                'demo_login': 'Demo Login:',
+                'username_label': 'Username',
+                'password_label': 'Password',
+                'create_account': 'Create New Account',
+                'email': 'Email',
+                'full_name': 'Full Name',
+                'password_confirm': 'Confirm Password',
+                'cancel': 'Cancel',
+                'fill_all_fields': 'Please fill all fields',
+                'login_processing': 'Logging in...',
+                'login_success': 'Login successful! Redirecting...',
+                'login_error': 'Login error:',
+                'fill_required_fields': 'Please fill required fields',
+                'passwords_not_match': 'Passwords do not match',
+                'register_success': 'Registration successful! You can now login.',
+                'register_error': 'Registration error:'
+            }
+        };
 
-        // Sayfa yüklendiğinde tema ayarla
+        function t(key) {
+            return translations[lang][key] || key;
+        }
+
+        function changeLang(newLang) {
+            lang = newLang;
+            localStorage.setItem('lang', lang);
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            // Tüm data-i18n attribute'larına sahip elementleri güncelle
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = t(key);
+            });
+            
+            // Placeholder'ları güncelle
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = t(key);
+            });
+            
+            // Title güncelle
+            document.title = t('login_title');
+        }
+
+        // Sayfa yüklendiğinde tema ve dil ayarla
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('langSelect').value = lang;
+            applyTranslations();
             applyTheme(currentTheme);
         });
 
@@ -229,14 +329,14 @@
             const password = document.getElementById('password').value;
             
             if (!username || !password) {
-                showAlert('Lütfen tüm alanları doldurun', 'warning');
+                showAlert(t('fill_all_fields'), 'warning');
                 return;
             }
             
             // Loading durumu
             const submitBtn = document.querySelector('.btn-login');
             const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Giriş Yapılıyor...';
+            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('login_processing')}`;
             submitBtn.disabled = true;
             
             fetch('/api/auth/login', {
@@ -256,7 +356,7 @@
                     localStorage.setItem('auth_token', data.token);
                     localStorage.setItem('user_info', JSON.stringify(data.user));
                     
-                    showAlert('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+                    showAlert(t('login_success'), 'success');
                     
                     // Ana sayfaya yönlendir
                     setTimeout(() => {
@@ -267,7 +367,7 @@
                 }
             })
             .catch(error => {
-                showAlert('Giriş hatası: ' + error.message, 'danger');
+                showAlert(t('login_error') + ' ' + error.message, 'danger');
             })
             .finally(() => {
                 submitBtn.innerHTML = originalText;
@@ -288,12 +388,12 @@
             const passwordConfirm = document.getElementById('regPasswordConfirm').value;
             
             if (!username || !email || !password) {
-                showAlert('Lütfen gerekli alanları doldurun', 'warning');
+                showAlert(t('fill_required_fields'), 'warning');
                 return;
             }
             
             if (password !== passwordConfirm) {
-                showAlert('Şifreler eşleşmiyor', 'warning');
+                showAlert(t('passwords_not_match'), 'warning');
                 return;
             }
             
@@ -312,7 +412,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('Kayıt başarılı! Giriş yapabilirsiniz.', 'success');
+                    showAlert(t('register_success'), 'success');
                     bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
                     
                     // Formu temizle
@@ -322,7 +422,7 @@
                 }
             })
             .catch(error => {
-                showAlert('Kayıt hatası: ' + error.message, 'danger');
+                showAlert(t('register_error') + ' ' + error.message, 'danger');
             });
         }
 

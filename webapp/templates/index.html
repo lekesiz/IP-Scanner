@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı</title>
+    <title data-i18n="title">IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -87,9 +87,23 @@
             background: #3a3a3a !important;
             color: #ffffff !important;
         }
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <!-- Dil seçici -->
+    <div class="language-selector">
+        <select class="form-select form-select-sm" id="langSelect" style="width: 120px;" onchange="changeLang(this.value)">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
     <!-- Tema Değiştirme Butonu -->
     <div class="theme-toggle">
         <button class="btn btn-outline-secondary" onclick="toggleTheme()" id="themeToggle">
@@ -100,18 +114,18 @@
     <!-- Kullanıcı Menüsü -->
     <div class="user-menu dropdown">
         <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user"></i> Kullanıcı
+            <i class="fas fa-user"></i> <span data-i18n="user">Kullanıcı</span>
         </button>
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="#" onclick="showProfile()">
-                <i class="fas fa-user-circle"></i> Profil
+                <i class="fas fa-user-circle"></i> <span data-i18n="profile">Profil</span>
             </a></li>
             <li><a class="dropdown-item" href="#" onclick="showSettings()">
-                <i class="fas fa-cog"></i> Ayarlar
+                <i class="fas fa-cog"></i> <span data-i18n="settings">Ayarlar</span>
             </a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="#" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Çıkış
+                <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Çıkış</span>
             </a></li>
         </ul>
     </div>
@@ -135,89 +149,89 @@
                 
                 <!-- Tarama Seçenekleri -->
                 <div class="mb-4">
-                    <h5>Tarama Türü</h5>
+                    <h5 data-i18n="scan_type">Tarama Türü</h5>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="scanType" id="basicScan" value="basic" checked>
                         <label class="form-check-label" for="basicScan">
-                            <i class="fas fa-search"></i> Temel Tarama
+                            <i class="fas fa-search"></i> <span data-i18n="basic_scan">Temel Tarama</span>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="scanType" id="fastScan" value="fast">
                         <label class="form-check-label" for="fastScan">
-                            <i class="fas fa-bolt"></i> Hızlı Tarama (Port Yok)
+                            <i class="fas fa-bolt"></i> <span data-i18n="fast_scan">Hızlı Tarama (Port Yok)</span>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="scanType" id="advancedScan" value="advanced">
                         <label class="form-check-label" for="advancedScan">
-                            <i class="fas fa-microscope"></i> Gelişmiş Tarama
+                            <i class="fas fa-microscope"></i> <span data-i18n="advanced_scan">Gelişmiş Tarama</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Gelişmiş Tarama Seçenekleri -->
                 <div id="advancedOptions" class="mb-4" style="display: none;">
-                    <h5>Gelişmiş Seçenekler</h5>
+                    <h5 data-i18n="advanced_options">Gelişmiş Seçenekler</h5>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="enableNmap" checked>
                         <label class="form-check-label" for="enableNmap">
-                            <i class="fas fa-fingerprint"></i> Nmap OS Tespiti
+                            <i class="fas fa-fingerprint"></i> <span data-i18n="nmap_os">Nmap OS Tespiti</span>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="enableDhcp" checked>
                         <label class="form-check-label" for="enableDhcp">
-                            <i class="fas fa-broadcast-tower"></i> DHCP Keşfi
+                            <i class="fas fa-broadcast-tower"></i> <span data-i18n="dhcp_discovery">DHCP Keşfi</span>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="enableNetbios" checked>
                         <label class="form-check-label" for="enableNetbios">
-                            <i class="fas fa-desktop"></i> NetBIOS Keşfi
+                            <i class="fas fa-desktop"></i> <span data-i18n="netbios_discovery">NetBIOS Keşfi</span>
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="enableMdns" checked>
                         <label class="form-check-label" for="enableMdns">
-                            <i class="fas fa-apple-alt"></i> mDNS Keşfi
+                            <i class="fas fa-apple-alt"></i> <span data-i18n="mdns_discovery">mDNS Keşfi</span>
                         </label>
                     </div>
                 </div>
 
                 <!-- IP Aralığı -->
                 <div class="mb-4">
-                    <label for="ipRange" class="form-label">IP Aralığı</label>
+                    <label for="ipRange" class="form-label" data-i18n="ip_range">IP Aralığı</label>
                     <input type="text" class="form-control" id="ipRange" value="192.168.1.0/24">
                 </div>
 
                 <!-- Tarama Butonu -->
-                <button class="btn btn-primary w-100 mb-3" onclick="startScan()">
-                    <i class="fas fa-play"></i> Taramayı Başlat
+                <button class="btn btn-primary w-100 mb-3" onclick="startScan()" id="scanBtn">
+                    <i class="fas fa-play"></i> <span data-i18n="start_scan">Taramayı Başlat</span>
                 </button>
 
                 <!-- İstatistikler -->
                 <div class="mt-4">
-                    <h5>İstatistikler</h5>
+                    <h5 data-i18n="statistics">İstatistikler</h5>
                     <div id="stats">
-                        <p class="text-muted">Henüz tarama yapılmadı</p>
+                        <p class="text-muted" data-i18n="no_scan_yet">Henüz tarama yapılmadı</p>
                     </div>
                 </div>
 
                 <!-- Hızlı Eylemler -->
                 <div class="mt-4">
-                    <h5>Hızlı Eylemler</h5>
+                    <h5 data-i18n="quick_actions">Hızlı Eylemler</h5>
                     <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="generateNetworkMap()">
-                        <i class="fas fa-project-diagram"></i> Ağ Haritası
+                        <i class="fas fa-project-diagram"></i> <span data-i18n="network_map">Ağ Haritası</span>
                     </button>
                     <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="generateReports()">
-                        <i class="fas fa-file-alt"></i> Rapor Oluştur
+                        <i class="fas fa-file-alt"></i> <span data-i18n="generate_report">Rapor Oluştur</span>
                     </button>
                     <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="showEmailModal()">
-                        <i class="fas fa-envelope"></i> E-posta Gönder
+                        <i class="fas fa-envelope"></i> <span data-i18n="send_email">E-posta Gönder</span>
                     </button>
                     <button class="btn btn-outline-light btn-sm w-100" onclick="startMonitoring()">
-                        <i class="fas fa-eye"></i> Ağ İzleme
+                        <i class="fas fa-eye"></i> <span data-i18n="network_monitor">Ağ İzleme</span>
                     </button>
                 </div>
             </div>
@@ -225,19 +239,19 @@
             <!-- Ana İçerik -->
             <div class="col-md-9 p-4 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Ağ Cihazları</h2>
+                    <h2 data-i18n="network_devices">Ağ Cihazları</h2>
                     <div class="loading" id="loading">
                         <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Taranıyor...</span>
+                            <span class="visually-hidden" data-i18n="scanning">Taranıyor...</span>
                         </div>
-                        <span class="ms-2">Taranıyor...</span>
+                        <span class="ms-2" data-i18n="scanning">Taranıyor...</span>
                     </div>
                 </div>
 
                 <!-- Cihaz Listesi -->
                 <div id="deviceList" class="row">
                     <div class="col-12">
-                        <p class="text-muted">Taramayı başlatmak için sol paneldeki butonu kullanın.</p>
+                        <p class="text-muted" data-i18n="start_scan_hint">Taramayı başlatmak için sol paneldeki butonu kullanın.</p>
                     </div>
                 </div>
             </div>
@@ -249,7 +263,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cihaz Detayları</h5>
+                    <h5 class="modal-title" data-i18n="device_details">Cihaz Detayları</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="deviceModalBody">
@@ -264,41 +278,41 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">E-posta ile Rapor Gönder</h5>
+                    <h5 class="modal-title" data-i18n="send_email_report">E-posta ile Rapor Gönder</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="emailTo" class="form-label">Alıcı E-posta</label>
+                        <label for="emailTo" class="form-label" data-i18n="recipient_email">Alıcı E-posta</label>
                         <input type="email" class="form-control" id="emailTo" required>
                     </div>
                     <div class="mb-3">
-                        <label for="reportType" class="form-label">Rapor Türü</label>
+                        <label for="reportType" class="form-label" data-i18n="report_type">Rapor Türü</label>
                         <select class="form-select" id="reportType">
-                            <option value="html">HTML Rapor</option>
-                            <option value="pdf">PDF Rapor</option>
+                            <option value="html" data-i18n="html_report">HTML Rapor</option>
+                            <option value="pdf" data-i18n="pdf_report">PDF Rapor</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="smtpServer" class="form-label">SMTP Sunucu</label>
+                        <label for="smtpServer" class="form-label" data-i18n="smtp_server">SMTP Sunucu</label>
                         <input type="text" class="form-control" id="smtpServer" placeholder="smtp.gmail.com">
                     </div>
                     <div class="mb-3">
-                        <label for="smtpPort" class="form-label">SMTP Port</label>
+                        <label for="smtpPort" class="form-label" data-i18n="smtp_port">SMTP Port</label>
                         <input type="number" class="form-control" id="smtpPort" value="587">
                     </div>
                     <div class="mb-3">
-                        <label for="smtpUser" class="form-label">E-posta Adresi</label>
+                        <label for="smtpUser" class="form-label" data-i18n="email_address">E-posta Adresi</label>
                         <input type="email" class="form-control" id="smtpUser">
                     </div>
                     <div class="mb-3">
-                        <label for="smtpPass" class="form-label">Şifre</label>
+                        <label for="smtpPass" class="form-label" data-i18n="password">Şifre</label>
                         <input type="password" class="form-control" id="smtpPass">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="button" class="btn btn-primary" onclick="sendEmail()">Gönder</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="sendEmail()" data-i18n="send">Gönder</button>
                 </div>
             </div>
         </div>
@@ -309,30 +323,30 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Kullanıcı Profili</h5>
+                    <h5 class="modal-title" data-i18n="user_profile">Kullanıcı Profili</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--bs-primary);"></i>
-                        <h4 class="mt-2">IP Scanner Kullanıcısı</h4>
-                        <p class="text-muted">Ağ Yöneticisi</p>
+                        <h4 class="mt-2" data-i18n="ip_scanner_user">IP Scanner Kullanıcısı</h4>
+                        <p class="text-muted" data-i18n="network_admin">Ağ Yöneticisi</p>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Kullanım İstatistikleri</h6>
+                            <h6 data-i18n="usage_stats">Kullanım İstatistikleri</h6>
                             <ul class="list-unstyled">
-                                <li><i class="fas fa-search"></i> Toplam Tarama: 127</li>
-                                <li><i class="fas fa-eye"></i> İzleme Saati: 48h</li>
-                                <li><i class="fas fa-file-alt"></i> Rapor Sayısı: 23</li>
+                                <li><i class="fas fa-search"></i> <span data-i18n="total_scans">Toplam Tarama</span>: 127</li>
+                                <li><i class="fas fa-eye"></i> <span data-i18n="monitoring_hours">İzleme Saati</span>: 48h</li>
+                                <li><i class="fas fa-file-alt"></i> <span data-i18n="report_count">Rapor Sayısı</span>: 23</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h6>Son Aktiviteler</h6>
+                            <h6 data-i18n="recent_activities">Son Aktiviteler</h6>
                             <ul class="list-unstyled">
-                                <li><small class="text-muted">2 saat önce - Ağ taraması</small></li>
-                                <li><small class="text-muted">1 gün önce - Rapor oluşturuldu</small></li>
-                                <li><small class="text-muted">3 gün önce - E-posta gönderildi</small></li>
+                                <li><small class="text-muted" data-i18n="activity_2_hours">2 saat önce - Ağ taraması</small></li>
+                                <li><small class="text-muted" data-i18n="activity_1_day">1 gün önce - Rapor oluşturuldu</small></li>
+                                <li><small class="text-muted" data-i18n="activity_3_days">3 gün önce - E-posta gönderildi</small></li>
                             </ul>
                         </div>
                     </div>
@@ -346,46 +360,46 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Uygulama Ayarları</h5>
+                    <h5 class="modal-title" data-i18n="app_settings">Uygulama Ayarları</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Görünüm</h6>
+                            <h6 data-i18n="appearance">Görünüm</h6>
                             <div class="mb-3">
-                                <label class="form-label">Tema</label>
+                                <label class="form-label" data-i18n="theme">Tema</label>
                                 <select class="form-select" id="themeSelect" onchange="changeTheme(this.value)">
-                                    <option value="light">Açık Tema</option>
-                                    <option value="dark">Koyu Tema</option>
-                                    <option value="auto">Otomatik</option>
+                                    <option value="light" data-i18n="light_theme">Açık Tema</option>
+                                    <option value="dark" data-i18n="dark_theme">Koyu Tema</option>
+                                    <option value="auto" data-i18n="auto_theme">Otomatik</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Dil</label>
-                                <select class="form-select">
-                                    <option value="tr">Türkçe</option>
-                                    <option value="en">English</option>
+                                <label class="form-label" data-i18n="language">Dil</label>
+                                <select class="form-select" id="languageSelect" onchange="changeLang(this.value)">
+                                    <option value="tr" data-i18n="turkish">Türkçe</option>
+                                    <option value="en" data-i18n="english">English</option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6>Bildirimler</h6>
+                            <h6 data-i18n="notifications">Bildirimler</h6>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                                <label class="form-check-label" for="emailNotifications">
+                                <label class="form-check-label" for="emailNotifications" data-i18n="email_notifications">
                                     E-posta Bildirimleri
                                 </label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="anomalyAlerts" checked>
-                                <label class="form-check-label" for="anomalyAlerts">
+                                <label class="form-check-label" for="anomalyAlerts" data-i18n="anomaly_alerts">
                                     Anomali Uyarıları
                                 </label>
                             </div>
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" id="scanComplete" checked>
-                                <label class="form-check-label" for="scanComplete">
+                                <label class="form-check-label" for="scanComplete" data-i18n="scan_complete">
                                     Tarama Tamamlandı
                                 </label>
                             </div>
@@ -394,37 +408,37 @@
                     <hr>
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Tarama Ayarları</h6>
+                            <h6 data-i18n="scan_settings">Tarama Ayarları</h6>
                             <div class="mb-3">
-                                <label class="form-label">Varsayılan IP Aralığı</label>
+                                <label class="form-label" data-i18n="default_ip_range">Varsayılan IP Aralığı</label>
                                 <input type="text" class="form-control" value="192.168.1.0/24">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Tarama Timeout (saniye)</label>
+                                <label class="form-label" data-i18n="scan_timeout">Tarama Timeout (saniye)</label>
                                 <input type="number" class="form-control" value="3">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6>Güvenlik</h6>
+                            <h6 data-i18n="security">Güvenlik</h6>
                             <div class="mb-3">
-                                <label class="form-label">Oturum Süresi</label>
+                                <label class="form-label" data-i18n="session_duration">Oturum Süresi</label>
                                 <select class="form-select">
-                                    <option value="1">1 Saat</option>
-                                    <option value="8" selected>8 Saat</option>
-                                    <option value="24">24 Saat</option>
+                                    <option value="1" data-i18n="1_hour">1 Saat</option>
+                                    <option value="8" selected data-i18n="8_hours">8 Saat</option>
+                                    <option value="24" data-i18n="24_hours">24 Saat</option>
                                 </select>
                             </div>
                             <div class="mb-3">
                                 <button class="btn btn-outline-secondary btn-sm" onclick="exportSettings()">
-                                    <i class="fas fa-download"></i> Ayarları Dışa Aktar
+                                    <i class="fas fa-download"></i> <span data-i18n="export_settings">Ayarları Dışa Aktar</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Kaydet</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()" data-i18n="save">Kaydet</button>
                 </div>
             </div>
         </div>
@@ -435,7 +449,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Bildirimler</h5>
+                    <h5 class="modal-title" data-i18n="notifications">Bildirimler</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="notificationsList">
@@ -450,9 +464,306 @@
         let devices = [];
         let currentTheme = localStorage.getItem('theme') || 'light';
         let notifications = [];
+        let lang = localStorage.getItem('lang') || 'tr';
+        
+        const translations = {
+            tr: {
+                'title': 'IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı',
+                'user': 'Kullanıcı',
+                'profile': 'Profil',
+                'settings': 'Ayarlar',
+                'logout': 'Çıkış',
+                'logout_confirm': 'Çıkış yapmak istediğinizden emin misiniz?',
+                'logout_success': 'Çıkış yapıldı',
+                'settings_saved': 'Ayarlar kaydedildi!',
+                'scan_type': 'Tarama Türü',
+                'basic_scan': 'Temel Tarama',
+                'fast_scan': 'Hızlı Tarama (Port Yok)',
+                'advanced_scan': 'Gelişmiş Tarama',
+                'advanced_options': 'Gelişmiş Seçenekler',
+                'nmap_os': 'Nmap OS Tespiti',
+                'dhcp_discovery': 'DHCP Keşfi',
+                'netbios_discovery': 'NetBIOS Keşfi',
+                'mdns_discovery': 'mDNS Keşfi',
+                'ip_range': 'IP Aralığı',
+                'start_scan': 'Taramayı Başlat',
+                'statistics': 'İstatistikler',
+                'no_scan_yet': 'Henüz tarama yapılmadı',
+                'quick_actions': 'Hızlı Eylemler',
+                'network_map': 'Ağ Haritası',
+                'generate_report': 'Rapor Oluştur',
+                'send_email': 'E-posta Gönder',
+                'network_monitor': 'Ağ İzleme',
+                'network_devices': 'Ağ Cihazları',
+                'scanning': 'Taranıyor...',
+                'no_devices': 'Cihaz bulunamadı.',
+                'start_scan_hint': 'Taramayı başlatmak için sol paneldeki butonu kullanın.',
+                'device_details': 'Cihaz Detayları',
+                'send_email_report': 'E-posta ile Rapor Gönder',
+                'recipient_email': 'Alıcı E-posta',
+                'report_type': 'Rapor Türü',
+                'html_report': 'HTML Rapor',
+                'pdf_report': 'PDF Rapor',
+                'smtp_server': 'SMTP Sunucu',
+                'smtp_port': 'SMTP Port',
+                'email_address': 'E-posta Adresi',
+                'password': 'Şifre',
+                'cancel': 'İptal',
+                'send': 'Gönder',
+                'user_profile': 'Kullanıcı Profili',
+                'ip_scanner_user': 'IP Scanner Kullanıcısı',
+                'network_admin': 'Ağ Yöneticisi',
+                'usage_stats': 'Kullanım İstatistikleri',
+                'total_scans': 'Toplam Tarama',
+                'monitoring_hours': 'İzleme Saati',
+                'report_count': 'Rapor Sayısı',
+                'recent_activities': 'Son Aktiviteler',
+                'activity_2_hours': '2 saat önce - Ağ taraması',
+                'activity_1_day': '1 gün önce - Rapor oluşturuldu',
+                'activity_3_days': '3 gün önce - E-posta gönderildi',
+                'app_settings': 'Uygulama Ayarları',
+                'appearance': 'Görünüm',
+                'theme': 'Tema',
+                'light_theme': 'Açık Tema',
+                'dark_theme': 'Koyu Tema',
+                'auto_theme': 'Otomatik',
+                'language': 'Dil',
+                'turkish': 'Türkçe',
+                'english': 'English',
+                'notifications': 'Bildirimler',
+                'email_notifications': 'E-posta Bildirimleri',
+                'anomaly_alerts': 'Anomali Uyarıları',
+                'scan_complete': 'Tarama Tamamlandı',
+                'scan_settings': 'Tarama Ayarları',
+                'default_ip_range': 'Varsayılan IP Aralığı',
+                'scan_timeout': 'Tarama Timeout (saniye)',
+                'security': 'Güvenlik',
+                'session_duration': 'Oturum Süresi',
+                '1_hour': '1 Saat',
+                '8_hours': '8 Saat',
+                '24_hours': '24 Saat',
+                'export_settings': 'Ayarları Dışa Aktar',
+                'save': 'Kaydet',
+                'anomaly_detected': 'Anomali Tespit Edildi',
+                'anomaly_message': '192.168.1.100 adresinden anormal trafik tespit edildi',
+                'anomaly_detected_message': '192.168.1.100 adresinden anormal trafik tespit edildi. Detaylar için tıklayın.',
+                'scan_completed': 'Tarama Tamamlandı',
+                'scan_completed_message': 'Ağ taraması başarıyla tamamlandı. 15 cihaz tespit edildi.',
+                'report_sent': 'Rapor Gönderildi',
+                'report_sent_message': 'Ağ raporu admin@company.com adresine gönderildi.',
+                '2_minutes_ago': '2 dakika önce',
+                '1_hour_ago': '1 saat önce',
+                '3_hours_ago': '3 saat önce',
+                'now': 'Şimdi',
+                'no_notifications': 'Bildirim bulunmuyor.',
+                'monitoring_started': 'Ağ İzleme Başlatıldı',
+                'monitoring_started_message': 'Ağ trafiği izlenmeye başlandı. Anomali tespit edildiğinde bildirim alacaksınız.',
+                'unknown_device': 'Bilinmeyen Cihaz',
+                'unknown': 'Bilinmeyen',
+                'confidence': 'Güven',
+                'basic_info': 'Temel Bilgiler',
+                'ip_address': 'IP Adresi',
+                'mac_address': 'MAC Adresi',
+                'vendor': 'Vendor',
+                'device_type': 'Cihaz Türü',
+                'confidence_level': 'Güven Seviyesi',
+                'status': 'Durum',
+                'discovery_methods': 'Keşif Yöntemleri',
+                'no_info': 'Bilgi yok',
+                'operating_system': 'İşletim Sistemi',
+                'os': 'OS',
+                'accuracy': 'Doğruluk',
+                'details': 'Detay',
+                'open_ports_services': 'Açık Portlar ve Servisler',
+                'port': 'Port',
+                'service': 'Servis',
+                'product': 'Ürün',
+                'version': 'Versiyon',
+                'additional_info': 'Ek Bilgiler',
+                'devices': 'Cihaz',
+                'open_ports': 'Açık Port',
+                'device_types': 'Cihaz Türü',
+                'scan_first': 'Önce tarama yapın!',
+                'map_error': 'Ağ haritası oluşturulamadı',
+                'reports_generated': 'Raporlar oluşturuldu!',
+                'report_error': 'Rapor oluşturulamadı',
+                'fill_all_fields': 'Tüm alanları doldurun!',
+                'email_sent_success': 'E-posta başarıyla gönderildi!',
+                'email_sent_error': 'E-posta gönderilemedi'
+            },
+            en: {
+                'title': 'IP Scanner V3.4 - Advanced Network Scanner',
+                'user': 'User',
+                'profile': 'Profile',
+                'settings': 'Settings',
+                'logout': 'Logout',
+                'logout_confirm': 'Are you sure you want to logout?',
+                'logout_success': 'Logged out successfully',
+                'settings_saved': 'Settings saved!',
+                'scan_type': 'Scan Type',
+                'basic_scan': 'Basic Scan',
+                'fast_scan': 'Fast Scan (No Ports)',
+                'advanced_scan': 'Advanced Scan',
+                'advanced_options': 'Advanced Options',
+                'nmap_os': 'Nmap OS Detection',
+                'dhcp_discovery': 'DHCP Discovery',
+                'netbios_discovery': 'NetBIOS Discovery',
+                'mdns_discovery': 'mDNS Discovery',
+                'ip_range': 'IP Range',
+                'start_scan': 'Start Scan',
+                'statistics': 'Statistics',
+                'no_scan_yet': 'No scan performed yet',
+                'quick_actions': 'Quick Actions',
+                'network_map': 'Network Map',
+                'generate_report': 'Generate Report',
+                'send_email': 'Send Email',
+                'network_monitor': 'Network Monitor',
+                'network_devices': 'Network Devices',
+                'scanning': 'Scanning...',
+                'no_devices': 'No devices found.',
+                'start_scan_hint': 'Use the button on the left panel to start scanning.',
+                'device_details': 'Device Details',
+                'send_email_report': 'Send Report via Email',
+                'recipient_email': 'Recipient Email',
+                'report_type': 'Report Type',
+                'html_report': 'HTML Report',
+                'pdf_report': 'PDF Report',
+                'smtp_server': 'SMTP Server',
+                'smtp_port': 'SMTP Port',
+                'email_address': 'Email Address',
+                'password': 'Password',
+                'cancel': 'Cancel',
+                'send': 'Send',
+                'user_profile': 'User Profile',
+                'ip_scanner_user': 'IP Scanner User',
+                'network_admin': 'Network Administrator',
+                'usage_stats': 'Usage Statistics',
+                'total_scans': 'Total Scans',
+                'monitoring_hours': 'Monitoring Hours',
+                'report_count': 'Report Count',
+                'recent_activities': 'Recent Activities',
+                'activity_2_hours': '2 hours ago - Network scan',
+                'activity_1_day': '1 day ago - Report generated',
+                'activity_3_days': '3 days ago - Email sent',
+                'app_settings': 'Application Settings',
+                'appearance': 'Appearance',
+                'theme': 'Theme',
+                'light_theme': 'Light Theme',
+                'dark_theme': 'Dark Theme',
+                'auto_theme': 'Auto',
+                'language': 'Language',
+                'turkish': 'Turkish',
+                'english': 'English',
+                'notifications': 'Notifications',
+                'email_notifications': 'Email Notifications',
+                'anomaly_alerts': 'Anomaly Alerts',
+                'scan_complete': 'Scan Complete',
+                'scan_settings': 'Scan Settings',
+                'default_ip_range': 'Default IP Range',
+                'scan_timeout': 'Scan Timeout (seconds)',
+                'security': 'Security',
+                'session_duration': 'Session Duration',
+                '1_hour': '1 Hour',
+                '8_hours': '8 Hours',
+                '24_hours': '24 Hours',
+                'export_settings': 'Export Settings',
+                'save': 'Save',
+                'anomaly_detected': 'Anomaly Detected',
+                'anomaly_message': 'Abnormal traffic detected from 192.168.1.100',
+                'anomaly_detected_message': 'Abnormal traffic detected from 192.168.1.100. Click for details.',
+                'scan_completed': 'Scan Completed',
+                'scan_completed_message': 'Network scan completed successfully. 15 devices detected.',
+                'report_sent': 'Report Sent',
+                'report_sent_message': 'Network report sent to admin@company.com.',
+                '2_minutes_ago': '2 minutes ago',
+                '1_hour_ago': '1 hour ago',
+                '3_hours_ago': '3 hours ago',
+                'now': 'Now',
+                'no_notifications': 'No notifications.',
+                'monitoring_started': 'Network Monitoring Started',
+                'monitoring_started_message': 'Network traffic monitoring started. You will receive notifications when anomalies are detected.',
+                'unknown_device': 'Unknown Device',
+                'unknown': 'Unknown',
+                'confidence': 'Confidence',
+                'basic_info': 'Basic Information',
+                'ip_address': 'IP Address',
+                'mac_address': 'MAC Address',
+                'vendor': 'Vendor',
+                'device_type': 'Device Type',
+                'confidence_level': 'Confidence Level',
+                'status': 'Status',
+                'discovery_methods': 'Discovery Methods',
+                'no_info': 'No information',
+                'operating_system': 'Operating System',
+                'os': 'OS',
+                'accuracy': 'Accuracy',
+                'details': 'Details',
+                'open_ports_services': 'Open Ports and Services',
+                'port': 'Port',
+                'service': 'Service',
+                'product': 'Product',
+                'version': 'Version',
+                'additional_info': 'Additional Information',
+                'devices': 'Devices',
+                'open_ports': 'Open Ports',
+                'device_types': 'Device Types',
+                'scan_first': 'Please scan first!',
+                'map_error': 'Network map could not be created',
+                'reports_generated': 'Reports generated!',
+                'report_error': 'Report could not be created',
+                'fill_all_fields': 'Please fill all fields!',
+                'email_sent_success': 'Email sent successfully!',
+                'email_sent_error': 'Email could not be sent'
+            }
+        };
 
-        // Sayfa yüklendiğinde tema ayarla
+        function t(key) {
+            return translations[lang][key] || key;
+        }
+
+        function changeLang(newLang) {
+            lang = newLang;
+            localStorage.setItem('lang', lang);
+            applyTranslations();
+            
+            // Backend'e dil tercihini kaydet
+            if (typeof userManager !== 'undefined') {
+                fetch('/api/auth/settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+                    },
+                    body: JSON.stringify({language: lang})
+                });
+            }
+        }
+
+        function applyTranslations() {
+            // Tüm data-i18n attribute'larına sahip elementleri güncelle
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (element.tagName === 'INPUT' && element.type === 'placeholder') {
+                    element.placeholder = t(key);
+                } else {
+                    element.textContent = t(key);
+                }
+            });
+            
+            // Select option'ları güncelle
+            document.querySelectorAll('option[data-i18n]').forEach(option => {
+                const key = option.getAttribute('data-i18n');
+                option.textContent = t(key);
+            });
+            
+            // Title güncelle
+            document.title = t('title');
+        }
+
+        // Sayfa yüklendiğinde tema ve dil ayarla
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('langSelect').value = lang;
+            applyTranslations();
             applyTheme(currentTheme);
             loadNotifications();
         });
@@ -500,15 +811,15 @@
         }
 
         function logout() {
-            if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+            if (confirm(t('logout_confirm'))) {
                 // Çıkış işlemleri
-                alert('Çıkış yapıldı');
+                alert(t('logout_success'));
             }
         }
 
         function saveSettings() {
             // Ayarları kaydet
-            alert('Ayarlar kaydedildi!');
+            alert(t('settings_saved'));
             bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
         }
 
@@ -538,25 +849,25 @@
                 {
                     id: 1,
                     type: 'warning',
-                    title: 'Anomali Tespit Edildi',
-                    message: '192.168.1.100 adresinden anormal trafik tespit edildi',
-                    time: '2 dakika önce',
+                    title: t('anomaly_detected'),
+                    message: t('anomaly_message'),
+                    time: t('2_minutes_ago'),
                     read: false
                 },
                 {
                     id: 2,
                     type: 'info',
-                    title: 'Tarama Tamamlandı',
-                    message: 'Ağ taraması başarıyla tamamlandı. 15 cihaz tespit edildi.',
-                    time: '1 saat önce',
+                    title: t('scan_completed'),
+                    message: t('scan_completed_message'),
+                    time: t('1_hour_ago'),
                     read: true
                 },
                 {
                     id: 3,
                     type: 'success',
-                    title: 'Rapor Gönderildi',
-                    message: 'Ağ raporu admin@company.com adresine gönderildi.',
-                    time: '3 saat önce',
+                    title: t('report_sent'),
+                    message: t('report_sent_message'),
+                    time: t('3_hours_ago'),
                     read: true
                 }
             ];
@@ -580,7 +891,7 @@
             const modalBody = document.getElementById('notificationsList');
             
             if (notifications.length === 0) {
-                modalBody.innerHTML = '<p class="text-muted">Bildirim bulunmuyor.</p>';
+                modalBody.innerHTML = `<p class="text-muted">${t('no_notifications')}</p>`;
             } else {
                 modalBody.innerHTML = notifications.map(notification => `
                     <div class="alert alert-${notification.type === 'warning' ? 'warning' : notification.type === 'info' ? 'info' : 'success'} ${notification.read ? 'opacity-75' : ''}">
@@ -608,7 +919,7 @@
                 type: type,
                 title: title,
                 message: message,
-                time: 'Şimdi',
+                time: t('now'),
                 read: false
             };
             
@@ -618,11 +929,11 @@
 
         // Ağ izleme
         function startMonitoring() {
-            addNotification('info', 'Ağ İzleme Başlatıldı', 'Ağ trafiği izlenmeye başlandı. Anomali tespit edildiğinde bildirim alacaksınız.');
+            addNotification('info', t('monitoring_started'), t('monitoring_started_message'));
             
             // Simüle edilmiş anomali tespiti
             setTimeout(() => {
-                addNotification('warning', 'Anomali Tespit Edildi', '192.168.1.100 adresinden anormal trafik tespit edildi. Detaylar için tıklayın.');
+                addNotification('warning', t('anomaly_detected'), t('anomaly_detected_message'));
             }, 5000);
         }
 
@@ -719,7 +1030,7 @@
             const deviceList = document.getElementById('deviceList');
             
             if (devices.length === 0) {
-                deviceList.innerHTML = '<div class="col-12"><p class="text-muted">Cihaz bulunamadı.</p></div>';
+                deviceList.innerHTML = `<div class="col-12"><p class="text-muted">${t('no_devices')}</p></div>`;
                 return;
             }
 
@@ -731,14 +1042,14 @@
                                 <span class="device-type-icon">${getDeviceIcon(device.device_type)}</span>
                                 <div>
                                     <h6 class="card-title mb-0">${device.ip}</h6>
-                                    <small class="text-muted">${device.device_type || 'Bilinmeyen Cihaz'}</small>
+                                    <small class="text-muted">${device.device_type || t('unknown_device')}</small>
                                 </div>
                             </div>
                             <p class="card-text">
                                 <small class="text-muted">
                                     <i class="fas fa-microchip"></i> ${device.mac}<br>
-                                    <i class="fas fa-industry"></i> ${device.vendor || 'Bilinmeyen'}<br>
-                                    ${device.confidence ? `<span class="badge bg-${getConfidenceColor(device.confidence)} confidence-badge">Güven: ${device.confidence}%</span>` : ''}
+                                    <i class="fas fa-industry"></i> ${device.vendor || t('unknown')}<br>
+                                    ${device.confidence ? `<span class="badge bg-${getConfidenceColor(device.confidence)} confidence-badge">${t('confidence')}: ${device.confidence}%</span>` : ''}
                                 </small>
                             </p>
                             ${device.discovery_methods ? `
@@ -786,30 +1097,30 @@
                         modalBody.innerHTML = `
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h6>Temel Bilgiler</h6>
+                                    <h6>${t('basic_info')}</h6>
                                     <table class="table table-sm">
-                                        <tr><td>IP Adresi:</td><td>${device.ip}</td></tr>
-                                        <tr><td>MAC Adresi:</td><td>${device.mac}</td></tr>
-                                        <tr><td>Vendor:</td><td>${device.vendor || 'Bilinmeyen'}</td></tr>
-                                        <tr><td>Cihaz Türü:</td><td>${device.device_type}</td></tr>
-                                        <tr><td>Güven Seviyesi:</td><td><span class="badge bg-${getConfidenceColor(device.confidence)}">${device.confidence}%</span></td></tr>
-                                        <tr><td>Durum:</td><td><span class="badge bg-success">${device.status}</span></td></tr>
+                                        <tr><td>${t('ip_address')}:</td><td>${device.ip}</td></tr>
+                                        <tr><td>${t('mac_address')}:</td><td>${device.mac}</td></tr>
+                                        <tr><td>${t('vendor')}:</td><td>${device.vendor || t('unknown')}</td></tr>
+                                        <tr><td>${t('device_type')}:</td><td>${device.device_type}</td></tr>
+                                        <tr><td>${t('confidence_level')}:</td><td><span class="badge bg-${getConfidenceColor(device.confidence)}">${device.confidence}%</span></td></tr>
+                                        <tr><td>${t('status')}:</td><td><span class="badge bg-success">${device.status}</span></td></tr>
                                     </table>
                                 </div>
                                 <div class="col-md-6">
-                                    <h6>Keşif Yöntemleri</h6>
+                                    <h6>${t('discovery_methods')}</h6>
                                     <div class="mb-3">
                                         ${device.discovery_methods ? device.discovery_methods.map(method => 
                                             `<span class="badge bg-primary me-1">${method}</span>`
-                                        ).join('') : 'Bilgi yok'}
+                                        ).join('') : t('no_info')}
                                     </div>
                                     
                                     ${device.os_info ? `
-                                        <h6>İşletim Sistemi</h6>
+                                        <h6>${t('operating_system')}</h6>
                                         <table class="table table-sm">
-                                            <tr><td>OS:</td><td>${device.os_info.os_name}</td></tr>
-                                            <tr><td>Doğruluk:</td><td>${device.os_info.os_accuracy}%</td></tr>
-                                            <tr><td>Detay:</td><td>${device.os_info.os_line}</td></tr>
+                                            <tr><td>${t('os')}:</td><td>${device.os_info.os_name}</td></tr>
+                                            <tr><td>${t('accuracy')}:</td><td>${device.os_info.os_accuracy}%</td></tr>
+                                            <tr><td>${t('details')}:</td><td>${device.os_info.os_line}</td></tr>
                                         </table>
                                     ` : ''}
                                 </div>
@@ -818,15 +1129,15 @@
                             ${device.services && device.services.length > 0 ? `
                                 <div class="row mt-3">
                                     <div class="col-12">
-                                        <h6>Açık Portlar ve Servisler</h6>
+                                        <h6>${t('open_ports_services')}</h6>
                                         <div class="table-responsive">
                                             <table class="table table-sm">
                                                 <thead>
                                                     <tr>
-                                                        <th>Port</th>
-                                                        <th>Servis</th>
-                                                        <th>Ürün</th>
-                                                        <th>Versiyon</th>
+                                                        <th>${t('port')}</th>
+                                                        <th>${t('service')}</th>
+                                                        <th>${t('product')}</th>
+                                                        <th>${t('version')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -848,7 +1159,7 @@
                             ${device.additional_info && Object.keys(device.additional_info).length > 0 ? `
                                 <div class="row mt-3">
                                     <div class="col-12">
-                                        <h6>Ek Bilgiler</h6>
+                                        <h6>${t('additional_info')}</h6>
                                         ${Object.entries(device.additional_info).map(([key, value]) => `
                                             <div class="mb-2">
                                                 <strong>${key.toUpperCase()}:</strong>
@@ -869,7 +1180,7 @@
         function updateStats() {
             const stats = document.getElementById('stats');
             if (devices.length === 0) {
-                stats.innerHTML = '<p class="text-muted">Henüz tarama yapılmadı</p>';
+                stats.innerHTML = `<p class="text-muted">${t('no_scan_yet')}</p>`;
                 return;
             }
 
@@ -888,17 +1199,17 @@
             stats.innerHTML = `
                 <div class="card stats-card mb-2">
                     <div class="card-body p-2">
-                        <h6 class="mb-0">${devices.length} Cihaz</h6>
+                        <h6 class="mb-0">${devices.length} ${t('devices')}</h6>
                     </div>
                 </div>
                 <div class="card stats-card mb-2">
                     <div class="card-body p-2">
-                        <h6 class="mb-0">${totalPorts} Açık Port</h6>
+                        <h6 class="mb-0">${totalPorts} ${t('open_ports')}</h6>
                     </div>
                 </div>
                 <div class="card stats-card">
                     <div class="card-body p-2">
-                        <h6 class="mb-0">${Object.keys(deviceTypes).length} Cihaz Türü</h6>
+                        <h6 class="mb-0">${Object.keys(deviceTypes).length} ${t('device_types')}</h6>
                     </div>
                 </div>
             `;
@@ -906,7 +1217,7 @@
 
         function generateNetworkMap() {
             if (devices.length === 0) {
-                alert('Önce tarama yapın!');
+                alert(t('scan_first'));
                 return;
             }
 
@@ -916,7 +1227,7 @@
                     if (data.status === 'ok') {
                         window.open(data.html_path, '_blank');
                     } else {
-                        alert('Ağ haritası oluşturulamadı: ' + data.error);
+                        alert(t('map_error') + ': ' + data.error);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -924,7 +1235,7 @@
 
         function generateReports() {
             if (devices.length === 0) {
-                alert('Önce tarama yapın!');
+                alert(t('scan_first'));
                 return;
             }
 
@@ -932,9 +1243,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'ok') {
-                        alert('Raporlar oluşturuldu!');
+                        alert(t('reports_generated'));
                     } else {
-                        alert('Rapor oluşturulamadı: ' + data.error);
+                        alert(t('report_error') + ': ' + data.error);
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -942,7 +1253,7 @@
 
         function showEmailModal() {
             if (devices.length === 0) {
-                alert('Önce tarama yapın!');
+                alert(t('scan_first'));
                 return;
             }
             new bootstrap.Modal(document.getElementById('emailModal')).show();
@@ -957,7 +1268,7 @@
             const smtpPass = document.getElementById('smtpPass').value;
 
             if (!toEmail || !smtpServer || !smtpUser || !smtpPass) {
-                alert('Tüm alanları doldurun!');
+                alert(t('fill_all_fields'));
                 return;
             }
 
@@ -980,10 +1291,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'ok') {
-                    alert('E-posta başarıyla gönderildi!');
+                    alert(t('email_sent_success'));
                     bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
                 } else {
-                    alert('E-posta gönderilemedi: ' + data.error);
+                    alert(t('email_sent_error') + ': ' + data.error);
                 }
             })
             .catch(error => console.error('Error:', error));
