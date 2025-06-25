@@ -6,6 +6,10 @@
     <title data-i18n="title">IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+    <meta name="theme-color" content="#667eea">
     <style>
         .device-card {
             transition: transform 0.2s;
@@ -93,9 +97,390 @@
             left: 20px;
             z-index: 1000;
         }
+        
+        /* Mobil Responsive Tasarım */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 1050;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 10px !important;
+            }
+            
+            .mobile-menu-toggle {
+                display: block !important;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1060;
+                background: var(--bs-primary);
+                border: none;
+                color: white;
+                padding: 8px 12px;
+                border-radius: 5px;
+            }
+            
+            .language-selector {
+                top: 20px;
+                left: 80px;
+            }
+            
+            .theme-toggle {
+                top: 20px;
+                right: 20px;
+            }
+            
+            .user-menu {
+                top: 20px;
+                right: 80px;
+            }
+            
+            .notification-badge {
+                top: 20px;
+                right: 160px;
+            }
+            
+            .device-card {
+                margin-bottom: 15px;
+            }
+            
+            .device-card .card-body {
+                padding: 15px;
+            }
+            
+            .device-type-icon {
+                font-size: 1.2em;
+            }
+            
+            .stats-card {
+                margin-bottom: 10px;
+            }
+            
+            .modal-xl {
+                max-width: 95%;
+                margin: 10px;
+            }
+            
+            .modal-dialog {
+                margin: 10px;
+            }
+            
+            .table-responsive {
+                font-size: 0.9em;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.9em;
+            }
+            
+            .form-control {
+                font-size: 16px; /* iOS zoom önleme */
+            }
+            
+            .quick-actions-mobile {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 15px;
+            }
+            
+            .quick-actions-mobile .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+            
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+            
+            .mobile-overlay.show {
+                display: block;
+            }
+            
+            .mobile-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                margin-bottom: 20px;
+                border-bottom: 1px solid var(--bs-border-color);
+            }
+            
+            .mobile-stats {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .mobile-stats .stats-card {
+                margin-bottom: 0;
+                text-align: center;
+            }
+            
+            .mobile-stats .stats-card h6 {
+                font-size: 0.9em;
+                margin: 0;
+            }
+        }
+        
+        /* Tablet Responsive */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .main-content {
+                margin-left: 250px;
+            }
+            
+            .device-card {
+                margin-bottom: 20px;
+            }
+            
+            .mobile-menu-toggle {
+                display: none !important;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1025px) {
+            .mobile-menu-toggle {
+                display: none !important;
+            }
+            
+            .mobile-overlay {
+                display: none !important;
+            }
+        }
+        
+        /* Touch Optimizasyonları */
+        @media (hover: none) and (pointer: coarse) {
+            .device-card:hover {
+                transform: none;
+            }
+            
+            .btn:hover {
+                transform: none;
+            }
+            
+            .device-card:active {
+                transform: scale(0.98);
+            }
+            
+            .btn:active {
+                transform: scale(0.95);
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .device-card,
+            .btn,
+            .sidebar {
+                transition: none;
+            }
+        }
+        
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            .device-card {
+                border: 2px solid;
+            }
+            
+            .btn {
+                border: 2px solid;
+            }
+        }
+        
+        .traffic-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .anomaly-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 8px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6c757d;
+        }
+        
+        .status-dot.active {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.warning {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .anomaly-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .anomaly-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            background: var(--card-bg);
+        }
+        
+        .anomaly-item.info {
+            border-left-color: #17a2b8;
+            background: rgba(23, 162, 184, 0.1);
+        }
+        
+        .anomaly-item.warning {
+            border-left-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .anomaly-item.danger {
+            border-left-color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .anomaly-item .anomaly-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .anomaly-item .anomaly-message {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .anomaly-item .anomaly-details {
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+        
+        .anomaly-item .anomaly-time {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+        
+        .no-anomalies {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            max-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .toast-notification.danger {
+            border-left: 4px solid #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .toast-notification.warning {
+            border-left: 4px solid #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .toast-notification.info {
+            border-left: 4px solid #17a2b8;
+            background: rgba(23, 162, 184, 0.1);
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toast-content i {
+            font-size: 16px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Mobil Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+    
+    <!-- Mobil Menü Toggle Butonu -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Dil seçici -->
     <div class="language-selector">
         <select class="form-select form-select-sm" id="langSelect" style="width: 120px;" onchange="changeLang(this.value)">
@@ -142,7 +527,15 @@
         <div class="row">
             <!-- Sidebar -->
             <div class="col-md-3 bg-dark text-white p-4 sidebar" style="min-height: 100vh;">
-                <h3 class="mb-4">
+                <div class="mobile-header d-md-none">
+                    <h3 class="mb-0">
+                        <i class="fas fa-network-wired"></i>
+                        IP Scanner V3.4
+                    </h3>
+                    <button class="btn-close btn-close-white" onclick="closeMobileMenu()"></button>
+                </div>
+                
+                <h3 class="mb-4 d-none d-md-block">
                     <i class="fas fa-network-wired"></i>
                     IP Scanner V3.4
                 </h3>
@@ -230,14 +623,51 @@
                     <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="showEmailModal()">
                         <i class="fas fa-envelope"></i> <span data-i18n="send_email">E-posta Gönder</span>
                     </button>
+                    <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="showTrafficModal()">
+                        <i class="fas fa-tachometer-alt"></i> <span data-i18n="live_traffic">Canlı Trafik</span>
+                    </button>
                     <button class="btn btn-outline-light btn-sm w-100" onclick="startMonitoring()">
                         <i class="fas fa-eye"></i> <span data-i18n="network_monitor">Ağ İzleme</span>
                     </button>
                 </div>
+                
+                <button class="sidebar-btn" onclick="showNetworkTraffic()">
+                    <i class="fas fa-chart-line"></i>
+                    <span data-tr="live_traffic">Canlı Trafik</span>
+                </button>
+                
+                <button class="sidebar-btn" onclick="showAnomalyDetection()">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span data-tr="anomaly_detection">Anomali Tespiti</span>
+                </button>
             </div>
 
             <!-- Ana İçerik -->
             <div class="col-md-9 p-4 main-content">
+                <!-- Mobil İstatistikler -->
+                <div class="mobile-stats d-md-none" id="mobileStats" style="display: none;">
+                    <!-- Mobil istatistikler buraya yüklenecek -->
+                </div>
+                
+                <!-- Mobil Hızlı Eylemler -->
+                <div class="quick-actions-mobile d-md-none" id="mobileQuickActions" style="display: none;">
+                    <button class="btn btn-primary btn-sm" onclick="generateNetworkMap()">
+                        <i class="fas fa-project-diagram"></i> <span data-i18n="network_map">Ağ Haritası</span>
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="generateReports()">
+                        <i class="fas fa-file-alt"></i> <span data-i18n="generate_report">Rapor</span>
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="showEmailModal()">
+                        <i class="fas fa-envelope"></i> <span data-i18n="send_email">E-posta</span>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="showTrafficModal()">
+                        <i class="fas fa-tachometer-alt"></i> <span data-i18n="live_traffic">Canlı Trafik</span>
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="startMonitoring()">
+                        <i class="fas fa-eye"></i> <span data-i18n="network_monitor">İzleme</span>
+                    </button>
+                </div>
+                
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 data-i18n="network_devices">Ağ Cihazları</h2>
                     <div class="loading" id="loading">
@@ -459,6 +889,119 @@
         </div>
     </div>
 
+    <!-- Canlı Trafik Modal -->
+    <div class="modal fade" id="trafficModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="live_traffic">Canlı Ağ Trafiği</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 data-i18n="bytes_sent">Gönderilen (B)</h6>
+                                    <div id="trafficBytesSent" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 data-i18n="bytes_recv">Alınan (B)</h6>
+                                    <div id="trafficBytesRecv" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 data-i18n="packets_sent">Gönderilen Paket</h6>
+                                    <div id="trafficPacketsSent" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 data-i18n="packets_recv">Alınan Paket</h6>
+                                    <div id="trafficPacketsRecv" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="mt-4 mb-2" data-i18n="active_connections">Aktif Bağlantılar</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="local_address">Yerel Adres</th>
+                                    <th data-i18n="remote_address">Uzak Adres</th>
+                                    <th data-i18n="status">Durum</th>
+                                    <th data-i18n="pid">PID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trafficConnections">
+                                <tr><td colspan="4" class="text-center text-muted" data-i18n="no_connections">Bağlantı yok</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomali Tespiti Modal -->
+    <div id="anomalyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> <span data-tr="anomaly_detection">Anomali Tespiti</span></h2>
+                <span class="close" onclick="closeAnomalyModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="anomaly-controls">
+                    <button class="btn btn-primary" onclick="startAnomalyDetection()">
+                        <i class="fas fa-play"></i> <span data-tr="start_detection">Tespiti Başlat</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="stopAnomalyDetection()">
+                        <i class="fas fa-stop"></i> <span data-tr="stop_detection">Durdur</span>
+                    </button>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="anomalyStatus"></span>
+                        <span id="anomalyStatusText" data-tr="detection_stopped">Tespit Durduruldu</span>
+                    </div>
+                </div>
+                
+                <div class="anomaly-results">
+                    <h3><span data-tr="detected_anomalies">Tespit Edilen Anomaliler</span></h3>
+                    <div id="anomalyList" class="anomaly-list">
+                        <div class="no-anomalies" data-tr="no_anomalies_detected">Henüz anomali tespit edilmedi</div>
+                    </div>
+                </div>
+                
+                <div class="traffic-summary">
+                    <h3><span data-tr="traffic_summary">Trafik Özeti</span></h3>
+                    <div class="traffic-stats">
+                        <div class="stat-item">
+                            <span class="stat-label" data-tr="bytes_sent">Gönderilen:</span>
+                            <span id="anomalyBytesSent">0 B</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label" data-tr="bytes_received">Alınan:</span>
+                            <span id="anomalyBytesRecv">0 B</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label" data-tr="active_connections">Aktif Bağlantılar:</span>
+                            <span id="anomalyConnections">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let devices = [];
@@ -589,7 +1132,25 @@
                 'report_error': 'Rapor oluşturulamadı',
                 'fill_all_fields': 'Tüm alanları doldurun!',
                 'email_sent_success': 'E-posta başarıyla gönderildi!',
-                'email_sent_error': 'E-posta gönderilemedi'
+                'email_sent_error': 'E-posta gönderilemedi',
+                'live_traffic': 'Canlı Trafik',
+                'bytes_sent': 'Gönderilen (B)',
+                'bytes_recv': 'Alınan (B)',
+                'packets_sent': 'Gönderilen Paket',
+                'packets_recv': 'Alınan Paket',
+                'active_connections': 'Aktif Bağlantılar',
+                'local_address': 'Yerel Adres',
+                'remote_address': 'Uzak Adres',
+                'no_connections': 'Bağlantı yok',
+                'anomaly_detection': 'Anomali Tespiti',
+                'start_detection': 'Tespiti Başlat',
+                'stop_detection': 'Durdur',
+                'detection_active': 'Tespit Aktif',
+                'detection_stopped': 'Tespit Durduruldu',
+                'detected_anomalies': 'Tespit Edilen Anomaliler',
+                'no_anomalies_detected': 'Henüz anomali tespit edilmedi',
+                'traffic_summary': 'Trafik Özeti',
+                'bytes_received': 'Alınan'
             },
             en: {
                 'title': 'IP Scanner V3.4 - Advanced Network Scanner',
@@ -713,7 +1274,25 @@
                 'report_error': 'Report could not be created',
                 'fill_all_fields': 'Please fill all fields!',
                 'email_sent_success': 'Email sent successfully!',
-                'email_sent_error': 'Email could not be sent'
+                'email_sent_error': 'Email could not be sent',
+                'live_traffic': 'Live Traffic',
+                'bytes_sent': 'Bytes Sent',
+                'bytes_recv': 'Bytes Received',
+                'packets_sent': 'Packets Sent',
+                'packets_recv': 'Packets Received',
+                'active_connections': 'Active Connections',
+                'local_address': 'Local Address',
+                'remote_address': 'Remote Address',
+                'no_connections': 'No connections',
+                'anomaly_detection': 'Anomaly Detection',
+                'start_detection': 'Start Detection',
+                'stop_detection': 'Stop Detection',
+                'detection_active': 'Detection Active',
+                'detection_stopped': 'Detection Stopped',
+                'detected_anomalies': 'Detected Anomalies',
+                'no_anomalies_detected': 'No anomalies detected yet',
+                'traffic_summary': 'Traffic Summary',
+                'bytes_received': 'Bytes Received'
             }
         };
 
@@ -766,6 +1345,7 @@
             applyTranslations();
             applyTheme(currentTheme);
             loadNotifications();
+            initMobileFeatures();
         });
 
         // Tema değiştirme
@@ -1213,6 +1793,9 @@
                     </div>
                 </div>
             `;
+            
+            // Mobil istatistikleri de güncelle
+            updateMobileStats();
         }
 
         function generateNetworkMap() {
@@ -1298,6 +1881,321 @@
                 }
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        // Mobil özellikleri başlat
+        function initMobileFeatures() {
+            // Touch olayları için optimizasyon
+            if ('ontouchstart' in window) {
+                document.body.classList.add('touch-device');
+            }
+            
+            // Ekran boyutu değişikliklerini dinle
+            window.addEventListener('resize', handleResize);
+            handleResize();
+            
+            // Mobil menü kapatma olayları
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.sidebar') || e.target.closest('.mobile-menu-toggle')) {
+                    return;
+                }
+                if (window.innerWidth <= 768) {
+                    closeMobileMenu();
+                }
+            });
+        }
+
+        // Ekran boyutu değişikliklerini yönet
+        function handleResize() {
+            const isMobile = window.innerWidth <= 768;
+            const mobileStats = document.getElementById('mobileStats');
+            const mobileQuickActions = document.getElementById('mobileQuickActions');
+            
+            if (isMobile) {
+                // Mobil görünümde istatistikleri ve hızlı eylemleri göster
+                if (devices.length > 0) {
+                    mobileStats.style.display = 'grid';
+                    mobileQuickActions.style.display = 'flex';
+                    updateMobileStats();
+                }
+            } else {
+                // Desktop görünümde gizle
+                mobileStats.style.display = 'none';
+                mobileQuickActions.style.display = 'none';
+                closeMobileMenu();
+            }
+        }
+
+        // Mobil menü toggle
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            const isOpen = sidebar.classList.contains('show');
+            
+            if (isOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        }
+
+        function openMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Mobil istatistikleri güncelle
+        function updateMobileStats() {
+            const mobileStats = document.getElementById('mobileStats');
+            
+            if (devices.length === 0) {
+                mobileStats.style.display = 'none';
+                return;
+            }
+
+            const deviceTypes = {};
+            const vendors = {};
+            let totalPorts = 0;
+
+            devices.forEach(device => {
+                deviceTypes[device.device_type] = (deviceTypes[device.device_type] || 0) + 1;
+                vendors[device.vendor] = (vendors[device.vendor] || 0) + 1;
+                if (device.open_ports) {
+                    totalPorts += device.open_ports.length;
+                }
+            });
+
+            mobileStats.innerHTML = `
+                <div class="stats-card">
+                    <div class="card-body p-2">
+                        <h6 class="mb-0">${devices.length} ${t('devices')}</h6>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-body p-2">
+                        <h6 class="mb-0">${totalPorts} ${t('open_ports')}</h6>
+                    </div>
+                </div>
+            `;
+        }
+
+        let trafficInterval = null;
+        function showTrafficModal() {
+            new bootstrap.Modal(document.getElementById('trafficModal')).show();
+            fetchAndUpdateTraffic();
+            if (trafficInterval) clearInterval(trafficInterval);
+            trafficInterval = setInterval(fetchAndUpdateTraffic, 2000);
+        }
+        document.getElementById('trafficModal').addEventListener('hidden.bs.modal', function() {
+            if (trafficInterval) clearInterval(trafficInterval);
+        });
+
+        function fetchAndUpdateTraffic() {
+            fetch('/api/network-traffic', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    document.getElementById('trafficBytesSent').textContent = formatBytes(data.traffic.bytes_sent);
+                    document.getElementById('trafficBytesRecv').textContent = formatBytes(data.traffic.bytes_recv);
+                    document.getElementById('trafficPacketsSent').textContent = data.traffic.packets_sent;
+                    document.getElementById('trafficPacketsRecv').textContent = data.traffic.packets_recv;
+                    const tbody = document.getElementById('trafficConnections');
+                    if (data.connections.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" data-i18n="no_connections">${t('no_connections')}</td></tr>`;
+                    } else {
+                        tbody.innerHTML = data.connections.map(conn => `
+                            <tr>
+                                <td>${conn.laddr}</td>
+                                <td>${conn.raddr}</td>
+                                <td>${conn.status}</td>
+                                <td>${conn.pid || ''}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            });
+        }
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            let kb = bytes / 1024;
+            if (kb < 1024) return kb.toFixed(1) + ' KB';
+            let mb = kb / 1024;
+            if (mb < 1024) return mb.toFixed(1) + ' MB';
+            let gb = mb / 1024;
+            return gb.toFixed(1) + ' GB';
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/service-worker.js');
+            });
+        }
+        
+        let anomalyDetectionInterval = null;
+        let anomalyList = [];
+        
+        function showAnomalyDetection() {
+            document.getElementById('anomalyModal').style.display = 'block';
+            applyTranslations();
+        }
+        
+        function closeAnomalyModal() {
+            document.getElementById('anomalyModal').style.display = 'none';
+            stopAnomalyDetection();
+        }
+        
+        function startAnomalyDetection() {
+            if (anomalyDetectionInterval) return;
+            
+            const statusDot = document.getElementById('anomalyStatus');
+            const statusText = document.getElementById('anomalyStatusText');
+            
+            statusDot.className = 'status-dot active';
+            statusText.textContent = t('detection_active') || 'Tespit Aktif';
+            
+            // İlk kontrolü hemen yap
+            checkAnomalies();
+            
+            // Her 5 saniyede bir kontrol et
+            anomalyDetectionInterval = setInterval(checkAnomalies, 5000);
+        }
+        
+        function stopAnomalyDetection() {
+            if (anomalyDetectionInterval) {
+                clearInterval(anomalyDetectionInterval);
+                anomalyDetectionInterval = null;
+            }
+            
+            const statusDot = document.getElementById('anomalyStatus');
+            const statusText = document.getElementById('anomalyStatusText');
+            
+            statusDot.className = 'status-dot';
+            statusText.textContent = t('detection_stopped') || 'Tespit Durduruldu';
+        }
+        
+        function checkAnomalies() {
+            fetch('/api/anomaly-detection', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    updateAnomalyDisplay(data);
+                    updateTrafficSummary(data.traffic, data.connections_count);
+                    
+                    // Yeni anomaliler varsa bildirim göster
+                    if (data.anomalies && data.anomalies.length > 0) {
+                        showAnomalyNotification(data.anomalies);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Anomali tespiti hatası:', error);
+            });
+        }
+        
+        function updateAnomalyDisplay(data) {
+            const anomalyListElement = document.getElementById('anomalyList');
+            
+            if (data.anomalies && data.anomalies.length > 0) {
+                // Yeni anomalileri listeye ekle
+                data.anomalies.forEach(anomaly => {
+                    anomaly.timestamp = new Date().toLocaleTimeString();
+                    anomalyList.unshift(anomaly);
+                });
+                
+                // Listeyi güncelle
+                anomalyListElement.innerHTML = '';
+                anomalyList.forEach(anomaly => {
+                    const anomalyItem = createAnomalyItem(anomaly);
+                    anomalyListElement.appendChild(anomalyItem);
+                });
+                
+                // Maksimum 20 anomali tut
+                if (anomalyList.length > 20) {
+                    anomalyList.splice(20);
+                }
+            }
+        }
+        
+        function createAnomalyItem(anomaly) {
+            const item = document.createElement('div');
+            item.className = `anomaly-item ${anomaly.severity}`;
+            
+            const icon = anomaly.severity === 'danger' ? 'fas fa-exclamation-circle' :
+                        anomaly.severity === 'warning' ? 'fas fa-exclamation-triangle' :
+                        'fas fa-info-circle';
+            
+            item.innerHTML = `
+                <div class="anomaly-header">
+                    <div class="anomaly-message">
+                        <i class="${icon}"></i> ${anomaly.message}
+                    </div>
+                    <div class="anomaly-time">${anomaly.timestamp}</div>
+                </div>
+                <div class="anomaly-details">${anomaly.details}</div>
+            `;
+            
+            return item;
+        }
+        
+        function updateTrafficSummary(traffic, connectionsCount) {
+            document.getElementById('anomalyBytesSent').textContent = formatBytes(traffic.bytes_sent);
+            document.getElementById('anomalyBytesRecv').textContent = formatBytes(traffic.bytes_recv);
+            document.getElementById('anomalyConnections').textContent = connectionsCount;
+        }
+        
+        function showAnomalyNotification(anomalies) {
+            // Tarayıcı bildirimi göster
+            if (Notification.permission === 'granted') {
+                anomalies.forEach(anomaly => {
+                    new Notification('IP Scanner - Anomali Tespit Edildi', {
+                        body: anomaly.message,
+                        icon: '/static/icons/icon-192x192.png'
+                    });
+                });
+            }
+            
+            // Toast bildirimi göster
+            anomalies.forEach(anomaly => {
+                showToast(anomaly.message, anomaly.severity);
+            });
+        }
+        
+        function showToast(message, type = 'info') {
+            // Basit toast bildirimi
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // 3 saniye sonra kaldır
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
     </script>
 </body>

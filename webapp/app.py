@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 import threading
 import os
@@ -8,6 +10,7 @@ from report_generator import generate_reports, ReportGenerator
 from advanced_scanner import create_advanced_scanner
 from user_management import user_manager
 from datetime import datetime
+import psutil
 
 app = Flask(__name__)
 scanner = None
@@ -490,6 +493,119 @@ def api_admin_activities():
         
     except Exception as e:
         return jsonify({'error': f'Aktivite listesi hatası: {str(e)}'}), 500
+
+@app.route('/api/network-traffic', methods=['GET'])
+@user_manager.require_auth
+def api_network_traffic():
+    """Gerçek zamanlı ağ trafiği ve bağlantı bilgisi döner"""
+    try:
+        # Ağ arayüzü istatistikleri
+        net_io = psutil.net_io_counters()
+        traffic = {
+            'bytes_sent': net_io.bytes_sent,
+            'bytes_recv': net_io.bytes_recv,
+            'packets_sent': net_io.packets_sent,
+            'packets_recv': net_io.packets_recv
+        }
+        # Aktif bağlantılar
+        connections = []
+        for conn in psutil.net_connections(kind='inet'):
+            if conn.status == psutil.CONN_ESTABLISHED:
+                connections.append({
+                    'laddr': f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else '',
+                    'raddr': f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else '',
+                    'status': conn.status,
+                    'pid': conn.pid
+                })
+        return jsonify({'status': 'ok', 'traffic': traffic, 'connections': connections})
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
+
+# Anomali tespiti için basit fonksiyon
+def detect_anomalies(traffic_data, connections):
+    """Basit anomali tespiti yapar"""
+    anomalies = []
+    
+    # Trafik threshold kontrolü (örnek: 1GB/saniye)
+    bytes_sent = traffic_data['bytes_sent']
+    bytes_recv = traffic_data['bytes_recv']
+    
+    # Eğer trafik çok yüksekse
+    if bytes_sent > 1000000000 or bytes_recv > 1000000000:  # 1GB
+        anomalies.append({
+            'type': 'high_traffic',
+            'severity': 'warning',
+            'message': 'Yüksek ağ trafiği tespit edildi',
+            'details': f'Gönderilen: {bytes_sent}, Alınan: {bytes_recv}'
+        })
+    
+    # Port tarama tespiti (çok fazla bağlantı)
+    if len(connections) > 100:
+        anomalies.append({
+            'type': 'port_scan',
+            'severity': 'danger',
+            'message': 'Port tarama aktivitesi tespit edildi',
+            'details': f'{len(connections)} aktif bağlantı'
+        })
+    
+    # Bilinmeyen cihaz tespiti (yeni IP'ler)
+    known_ips = set()  # Bu normalde veritabanından gelir
+    for conn in connections:
+        if conn['raddr'] and conn['raddr'] not in known_ips:
+            anomalies.append({
+                'type': 'unknown_device',
+                'severity': 'info',
+                'message': 'Bilinmeyen cihaz tespit edildi',
+                'details': f'IP: {conn["raddr"]}'
+            })
+    
+    return anomalies
+
+@app.route('/api/anomaly-detection', methods=['GET'])
+@user_manager.require_auth
+def api_anomaly_detection():
+    """Anomali tespiti yapar ve sonuçları döner"""
+    try:
+        # Trafik verilerini al
+        net_io = psutil.net_io_counters()
+        traffic = {
+            'bytes_sent': net_io.bytes_sent,
+            'bytes_recv': net_io.bytes_recv,
+            'packets_sent': net_io.packets_sent,
+            'packets_recv': net_io.packets_recv
+        }
+        
+        # Aktif bağlantıları al
+        connections = []
+        for conn in psutil.net_connections(kind='inet'):
+            if conn.status == psutil.CONN_ESTABLISHED:
+                connections.append({
+                    'laddr': f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else '',
+                    'raddr': f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else '',
+                    'status': conn.status,
+                    'pid': conn.pid
+                })
+        
+        # Anomali tespiti
+        anomalies = detect_anomalies(traffic, connections)
+        
+        # Anomali varsa aktivite kaydet
+        if anomalies:
+            user_manager.log_activity(
+                request.current_user['user_id'],
+                'anomaly',
+                f'Anomali tespit edildi: {len(anomalies)} adet'
+            )
+        
+        return jsonify({
+            'status': 'ok',
+            'anomalies': anomalies,
+            'traffic': traffic,
+            'connections_count': len(connections)
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 
