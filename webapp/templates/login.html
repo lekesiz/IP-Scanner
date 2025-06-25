@@ -3,128 +3,362 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="login_title">IP Scanner V3.4 - Giriş</title>
+    <title>IP Scanner V4.0 - Profesyonel Giriş</title>
+    
+    <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6.4 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
     <meta name="theme-color" content="#667eea">
+    
     <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 16px;
+            --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        /* Professional Login Container */
         .login-container {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 400px;
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 3rem;
+            box-shadow: var(--box-shadow);
+            max-width: 450px;
             width: 100%;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .dark-mode .login-container {
             background: rgba(30, 30, 30, 0.95);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
+        /* Professional Header */
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2.5rem;
         }
-        .login-header i {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 15px;
+
+        .login-header .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
+
+        .login-header .logo i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        /* Professional Form Controls */
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
         .form-control {
-            border-radius: 10px;
+            border-radius: 12px;
             border: 2px solid #e9ecef;
-            padding: 12px 15px;
-            transition: all 0.3s;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.8);
         }
+
         .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+            background: white;
+            transform: translateY(-1px);
         }
+
+        .dark-mode .form-control {
+            background: rgba(45, 55, 72, 0.8);
+            border-color: #495057;
+            color: white;
+        }
+
+        .dark-mode .form-control:focus {
+            background: rgba(45, 55, 72, 1);
+            border-color: var(--primary-color);
+        }
+
+        .form-floating > label {
+            padding: 1rem 1.25rem;
+            color: #6c757d;
+        }
+
+        /* Professional Buttons */
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             border: none;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 1rem 2rem;
             font-weight: 600;
-            transition: all 0.3s;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
         }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
         }
-        .theme-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+
+        .btn-login:active {
+            transform: translateY(0);
         }
-        .language-selector {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+
+        /* Professional Input Groups */
+        .input-group {
+            margin-bottom: 1.5rem;
         }
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
+
         .input-group-text {
             background: transparent;
             border: 2px solid #e9ecef;
             border-right: none;
+            border-radius: 12px 0 0 12px;
+            color: #6c757d;
         }
+
         .input-group .form-control {
             border-left: none;
+            border-radius: 0 12px 12px 0;
         }
+
         .input-group .form-control:focus + .input-group-text {
-            border-color: #667eea;
+            border-color: var(--primary-color);
         }
-        
-        /* Mobil Responsive Tasarım */
+
+        /* Professional Alerts */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+            color: white;
+        }
+
+        /* Professional Links */
+        .register-link {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .register-link a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        /* Professional Controls */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+
+        .btn-control {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-control:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Professional Form Validation */
+        .form-control.is-valid {
+            border-color: var(--success-color);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.94-.94 3.03-3.03-1.06-1.06-3.03 3.03-.94.94z'/%3e%3c/svg%3e");
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--danger-color);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4m0-1.4-1.4 1.4'/%3e%3c/svg%3e");
+        }
+
+        /* Professional Loading States */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Professional Responsive Design */
         @media (max-width: 768px) {
             body {
-                padding: 20px;
+                padding: 15px;
             }
             
             .login-container {
                 max-width: 100%;
-                padding: 30px 20px;
+                padding: 2rem 1.5rem;
                 margin: 0;
-                border-radius: 15px;
             }
             
-            .login-header i {
-                font-size: 2.5rem;
-            }
-            
-            .login-header h2 {
-                font-size: 1.5rem;
+            .login-header h1 {
+                font-size: 1.75rem;
             }
             
             .login-header p {
-                font-size: 0.9rem;
+                font-size: 1rem;
             }
             
             .form-control {
-                font-size: 16px; /* iOS zoom önleme */
-                padding: 15px 12px;
+                font-size: 16px;
+                padding: 1rem;
             }
             
             .btn-login {
-                padding: 15px;
+                padding: 1rem;
                 font-size: 1rem;
+            }
+            
+            .theme-toggle,
+            .language-selector {
+                position: fixed;
             }
             
             .theme-toggle {
@@ -136,61 +370,59 @@
                 top: 15px;
                 left: 15px;
             }
-            
-            .demo-info {
-                font-size: 0.8rem;
-                padding: 15px;
+        }
+
+        /* Professional Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-            
-            .modal-dialog {
-                margin: 20px;
-            }
-            
-            .modal-content {
-                border-radius: 15px;
-            }
-            
-            .modal-body {
-                padding: 20px;
-            }
-            
-            .modal-footer {
-                padding: 15px 20px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-        
-        /* Tablet Responsive */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .login-container {
-                max-width: 450px;
-                padding: 35px;
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-        
-        /* Touch Optimizasyonları */
-        @media (hover: none) and (pointer: coarse) {
-            .btn-login:hover {
-                transform: none;
-            }
-            
-            .btn-login:active {
-                transform: scale(0.95);
-            }
-            
-            .form-control:focus {
-                transform: none;
-            }
+
+        /* Professional Focus States */
+        .form-control:focus,
+        .btn:focus {
+            outline: none;
         }
-        
-        /* Accessibility */
+
+        /* Professional Accessibility */
         @media (prefers-reduced-motion: reduce) {
             .btn-login,
-            .form-control {
+            .form-control,
+            .btn-control {
                 transition: none;
             }
+            
+            .btn-login::before {
+                display: none;
+            }
         }
-        
-        /* High Contrast Mode */
+
+        /* Professional High Contrast */
         @media (prefers-contrast: high) {
             .login-container {
                 border: 2px solid;
@@ -202,255 +434,303 @@
         }
     </style>
 </head>
-<body>
-    <!-- Dil seçici -->
+<body class="fade-in">
+    <!-- Professional Controls -->
     <div class="language-selector">
-        <select class="form-select form-select-sm" id="langSelect" style="width: 120px;" onchange="changeLang(this.value)">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
+        <select class="form-select form-select-sm btn-control" id="languageSelect">
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="en">🇺🇸 English</option>
         </select>
     </div>
 
-    <!-- Tema Değiştirme Butonu -->
     <div class="theme-toggle">
-        <button class="btn btn-outline-light" onclick="toggleTheme()" id="themeToggle">
-            <i class="fas fa-moon" id="themeIcon"></i>
+        <button class="btn btn-control" id="themeToggle">
+            <i class="fas fa-moon"></i>
         </button>
     </div>
 
-    <div class="login-container">
+    <!-- Professional Login Container -->
+    <div class="login-container slide-up">
         <div class="login-header">
-            <i class="fas fa-network-wired"></i>
-            <h2 data-i18n="app_title">IP Scanner V3.4</h2>
-            <p class="text-muted" data-i18n="app_subtitle">Gelişmiş Ağ Tarayıcı</p>
+            <div class="logo">
+                <i class="fas fa-network-wired"></i>
+            </div>
+            <h1>IP Scanner V4.0</h1>
+            <p>Profesyonel Ağ Tarama ve Cihaz Tespit Sistemi</p>
         </div>
 
-        <!-- Hata/Success Mesajları -->
+        <!-- Professional Alert Container -->
         <div id="alertContainer"></div>
 
-        <!-- Giriş Formu -->
+        <!-- Professional Login Form -->
         <form id="loginForm">
-            <div class="mb-3">
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <input type="text" class="form-control" id="username" data-i18n-placeholder="username" placeholder="Kullanıcı Adı" required>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input type="password" class="form-control" id="password" data-i18n-placeholder="password" placeholder="Şifre" required>
-                </div>
-            </div>
-            
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="rememberMe">
-                <label class="form-check-label" for="rememberMe" data-i18n="remember_me">
-                    Beni Hatırla
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="username" placeholder="Kullanıcı Adı" required>
+                <label for="username">
+                    <i class="fas fa-user me-2"></i>Kullanıcı Adı
                 </label>
             </div>
             
-            <button type="submit" class="btn btn-primary btn-login w-100">
-                <i class="fas fa-sign-in-alt"></i> <span data-i18n="login">Giriş Yap</span>
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="password" placeholder="Şifre" required>
+                <label for="password">
+                    <i class="fas fa-lock me-2"></i>Şifre
+                </label>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">
+                    <i class="fas fa-clock me-1"></i>Beni Hatırla
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-login" id="loginBtn">
+                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
             </button>
         </form>
 
+        <!-- Professional Register Link -->
         <div class="register-link">
-            <p class="mb-0" data-i18n="no_account">Hesabınız yok mu? 
-                <a href="#" onclick="showRegisterForm()" class="text-decoration-none" data-i18n="register">Kayıt Ol</a>
+            <p class="mb-0">
+                Hesabınız yok mu? 
+                <a href="#" id="registerLink">
+                    <i class="fas fa-user-plus me-1"></i>Kayıt Ol
+                </a>
             </p>
         </div>
 
-        <!-- Demo Bilgileri -->
-        <div class="mt-4 p-3 bg-light rounded demo-info">
-            <small class="text-muted">
-                <strong data-i18n="demo_login">Demo Giriş:</strong><br>
-                <span data-i18n="username_label">Kullanıcı Adı</span>: <code>admin</code><br>
-                <span data-i18n="password_label">Şifre</span>: <code>admin123</code>
-            </small>
+        <!-- Professional Demo Info -->
+        <div class="mt-4 p-3 bg-light rounded-3 demo-info">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-primary me-2"></i>
+                <strong>Demo Giriş</strong>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <small class="text-muted">Kullanıcı Adı:</small><br>
+                    <code>admin</code>
+                </div>
+                <div class="col-6">
+                    <small class="text-muted">Şifre:</small><br>
+                    <code>admin123</code>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Kayıt Modal -->
+    <!-- Professional Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" data-i18n="create_account">Yeni Hesap Oluştur</h5>
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Yeni Hesap Oluştur
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="registerForm">
-                        <div class="mb-3">
-                            <label for="regUsername" class="form-label" data-i18n="username">Kullanıcı Adı</label>
-                            <input type="text" class="form-control" id="regUsername" required>
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="regUsername" placeholder="Kullanıcı Adı" required>
+                            <label for="regUsername">
+                                <i class="fas fa-user me-2"></i>Kullanıcı Adı
+                            </label>
                         </div>
-                        <div class="mb-3">
-                            <label for="regEmail" class="form-label" data-i18n="email">E-posta</label>
-                            <input type="email" class="form-control" id="regEmail" required>
+                        
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="regEmail" placeholder="E-posta" required>
+                            <label for="regEmail">
+                                <i class="fas fa-envelope me-2"></i>E-posta
+                            </label>
                         </div>
-                        <div class="mb-3">
-                            <label for="regFullName" class="form-label" data-i18n="full_name">Ad Soyad</label>
-                            <input type="text" class="form-control" id="regFullName">
+                        
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="regFullName" placeholder="Ad Soyad">
+                            <label for="regFullName">
+                                <i class="fas fa-id-card me-2"></i>Ad Soyad
+                            </label>
                         </div>
-                        <div class="mb-3">
-                            <label for="regPassword" class="form-label" data-i18n="password">Şifre</label>
-                            <input type="password" class="form-control" id="regPassword" required>
+                        
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="regPassword" placeholder="Şifre" required>
+                            <label for="regPassword">
+                                <i class="fas fa-lock me-2"></i>Şifre
+                            </label>
                         </div>
-                        <div class="mb-3">
-                            <label for="regPasswordConfirm" class="form-label" data-i18n="password_confirm">Şifre Tekrar</label>
-                            <input type="password" class="form-control" id="regPasswordConfirm" required>
+                        
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Şifre Tekrar" required>
+                            <label for="regPasswordConfirm">
+                                <i class="fas fa-lock me-2"></i>Şifre Tekrar
+                            </label>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="cancel">İptal</button>
-                    <button type="button" class="btn btn-primary" onclick="registerUser()" data-i18n="register">Kayıt Ol</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>İptal
+                    </button>
+                    <button type="button" class="btn btn-primary" id="registerBtn">
+                        <i class="fas fa-user-plus me-1"></i>Kayıt Ol
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Professional JavaScript -->
     <script>
+        // Global variables
         let currentTheme = localStorage.getItem('theme') || 'light';
-        let lang = localStorage.getItem('lang') || 'tr';
+        let currentLanguage = localStorage.getItem('language') || 'tr';
         
+        // Translations
         const translations = {
             tr: {
-                'login_title': 'IP Scanner V3.4 - Giriş',
-                'app_title': 'IP Scanner V3.4',
-                'app_subtitle': 'Gelişmiş Ağ Tarayıcı',
-                'username': 'Kullanıcı Adı',
-                'password': 'Şifre',
-                'remember_me': 'Beni Hatırla',
-                'login': 'Giriş Yap',
-                'no_account': 'Hesabınız yok mu?',
-                'register': 'Kayıt Ol',
-                'demo_login': 'Demo Giriş:',
-                'username_label': 'Kullanıcı Adı',
-                'password_label': 'Şifre',
-                'create_account': 'Yeni Hesap Oluştur',
-                'email': 'E-posta',
-                'full_name': 'Ad Soyad',
-                'password_confirm': 'Şifre Tekrar',
-                'cancel': 'İptal',
-                'fill_all_fields': 'Lütfen tüm alanları doldurun',
-                'login_processing': 'Giriş Yapılıyor...',
-                'login_success': 'Giriş başarılı! Yönlendiriliyorsunuz...',
-                'login_error': 'Giriş hatası:',
-                'fill_required_fields': 'Lütfen gerekli alanları doldurun',
-                'passwords_not_match': 'Şifreler eşleşmiyor',
-                'register_success': 'Kayıt başarılı! Giriş yapabilirsiniz.',
-                'register_error': 'Kayıt hatası:'
+                title: 'IP Scanner V4.0 - Profesyonel Giriş',
+                username: 'Kullanıcı Adı',
+                password: 'Şifre',
+                remember_me: 'Beni Hatırla',
+                login: 'Giriş Yap',
+                no_account: 'Hesabınız yok mu?',
+                register: 'Kayıt Ol',
+                demo_login: 'Demo Giriş',
+                create_account: 'Yeni Hesap Oluştur',
+                email: 'E-posta',
+                full_name: 'Ad Soyad',
+                password_confirm: 'Şifre Tekrar',
+                cancel: 'İptal',
+                fill_all_fields: 'Lütfen tüm alanları doldurun',
+                login_processing: 'Giriş Yapılıyor...',
+                login_success: 'Giriş başarılı! Yönlendiriliyorsunuz...',
+                login_error: 'Giriş hatası:',
+                fill_required_fields: 'Lütfen gerekli alanları doldurun',
+                passwords_not_match: 'Şifreler eşleşmiyor',
+                register_success: 'Kayıt başarılı! Giriş yapabilirsiniz.',
+                register_error: 'Kayıt hatası:',
+                loading: 'Yükleniyor...'
             },
             en: {
-                'login_title': 'IP Scanner V3.4 - Login',
-                'app_title': 'IP Scanner V3.4',
-                'app_subtitle': 'Advanced Network Scanner',
-                'username': 'Username',
-                'password': 'Password',
-                'remember_me': 'Remember Me',
-                'login': 'Login',
-                'no_account': 'Don\'t have an account?',
-                'register': 'Register',
-                'demo_login': 'Demo Login:',
-                'username_label': 'Username',
-                'password_label': 'Password',
-                'create_account': 'Create New Account',
-                'email': 'Email',
-                'full_name': 'Full Name',
-                'password_confirm': 'Confirm Password',
-                'cancel': 'Cancel',
-                'fill_all_fields': 'Please fill all fields',
-                'login_processing': 'Logging in...',
-                'login_success': 'Login successful! Redirecting...',
-                'login_error': 'Login error:',
-                'fill_required_fields': 'Please fill required fields',
-                'passwords_not_match': 'Passwords do not match',
-                'register_success': 'Registration successful! You can now login.',
-                'register_error': 'Registration error:'
+                title: 'IP Scanner V4.0 - Professional Login',
+                username: 'Username',
+                password: 'Password',
+                remember_me: 'Remember Me',
+                login: 'Login',
+                no_account: 'Don\'t have an account?',
+                register: 'Register',
+                demo_login: 'Demo Login',
+                create_account: 'Create New Account',
+                email: 'Email',
+                full_name: 'Full Name',
+                password_confirm: 'Confirm Password',
+                cancel: 'Cancel',
+                fill_all_fields: 'Please fill all fields',
+                login_processing: 'Logging in...',
+                login_success: 'Login successful! Redirecting...',
+                login_error: 'Login error:',
+                fill_required_fields: 'Please fill required fields',
+                passwords_not_match: 'Passwords do not match',
+                register_success: 'Registration successful! You can now login.',
+                register_error: 'Registration error:',
+                loading: 'Loading...'
             }
         };
 
-        function t(key) {
-            return translations[lang][key] || key;
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLogin();
+        });
+
+        function initializeLogin() {
+            loadUserPreferences();
+            setupEventListeners();
+            applyTranslations();
         }
 
-        function changeLang(newLang) {
-            lang = newLang;
-            localStorage.setItem('lang', lang);
+        function loadUserPreferences() {
+            setTheme(currentTheme);
+            setLanguage(currentLanguage);
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            const themeIcon = document.querySelector('#themeToggle i');
+            themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.getElementById('languageSelect').value = lang;
+            localStorage.setItem('language', lang);
             applyTranslations();
         }
 
         function applyTranslations() {
-            // Tüm data-i18n attribute'larına sahip elementleri güncelle
+            const t = translations[currentLanguage];
+            document.title = t.title;
+            
+            // Update form labels and placeholders
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
-                element.textContent = t(key);
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
             });
-            
-            // Placeholder'ları güncelle
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-                const key = element.getAttribute('data-i18n-placeholder');
-                element.placeholder = t(key);
-            });
-            
-            // Title güncelle
-            document.title = t('login_title');
         }
 
-        // Sayfa yüklendiğinde tema ve dil ayarla
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('langSelect').value = lang;
-            applyTranslations();
-            applyTheme(currentTheme);
-        });
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
 
-        // Tema değiştirme
+        function setupEventListeners() {
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Language selector
+            document.getElementById('languageSelect').addEventListener('change', (e) => changeLanguage(e.target.value));
+            
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Register link
+            document.getElementById('registerLink').addEventListener('click', showRegisterForm);
+            
+            // Register button
+            document.getElementById('registerBtn').addEventListener('click', handleRegister);
+        }
+
         function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            applyTheme(currentTheme);
-            localStorage.setItem('theme', currentTheme);
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
         }
 
-        function applyTheme(theme) {
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            
-            html.setAttribute('data-bs-theme', theme);
-            
-            if (theme === 'dark') {
-                themeIcon.className = 'fas fa-sun';
-                document.body.classList.add('dark-mode');
-            } else {
-                themeIcon.className = 'fas fa-moon';
-                document.body.classList.remove('dark-mode');
-            }
+        function changeLanguage(lang) {
+            setLanguage(lang);
         }
 
-        // Giriş formu
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        function handleLogin(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
             
             if (!username || !password) {
-                showAlert(t('fill_all_fields'), 'warning');
+                showAlert('Lütfen tüm alanları doldurun', 'danger');
                 return;
             }
             
-            // Loading durumu
-            const submitBtn = document.querySelector('.btn-login');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('login_processing')}`;
-            submitBtn.disabled = true;
+            // Show loading state
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.classList.add('btn-loading');
+            loginBtn.disabled = true;
             
             fetch('/api/auth/login', {
                 method: 'POST',
@@ -459,56 +739,58 @@
                 },
                 body: JSON.stringify({
                     username: username,
-                    password: password
+                    password: password,
+                    remember_me: rememberMe
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Token'ı localStorage'a kaydet
                     localStorage.setItem('auth_token', data.token);
-                    localStorage.setItem('user_info', JSON.stringify(data.user));
-                    
-                    showAlert(t('login_success'), 'success');
-                    
-                    // Ana sayfaya yönlendir
+                    showAlert('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1000);
+                    }, 1500);
                 } else {
-                    showAlert(data.message, 'danger');
+                    showAlert(data.message || 'Giriş hatası', 'danger');
                 }
             })
             .catch(error => {
-                showAlert(t('login_error') + ' ' + error.message, 'danger');
+                console.error('Login error:', error);
+                showAlert('Bağlantı hatası', 'danger');
             })
             .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                loginBtn.classList.remove('btn-loading');
+                loginBtn.disabled = false;
             });
-        });
-
-        // Kayıt formu
-        function showRegisterForm() {
-            new bootstrap.Modal(document.getElementById('registerModal')).show();
         }
 
-        function registerUser() {
+        function showRegisterForm() {
+            const modal = new bootstrap.Modal(document.getElementById('registerModal'));
+            modal.show();
+        }
+
+        function handleRegister() {
             const username = document.getElementById('regUsername').value;
             const email = document.getElementById('regEmail').value;
             const fullName = document.getElementById('regFullName').value;
             const password = document.getElementById('regPassword').value;
             const passwordConfirm = document.getElementById('regPasswordConfirm').value;
             
-            if (!username || !email || !password) {
-                showAlert(t('fill_required_fields'), 'warning');
+            if (!username || !email || !password || !passwordConfirm) {
+                showAlert('Lütfen gerekli alanları doldurun', 'danger');
                 return;
             }
             
             if (password !== passwordConfirm) {
-                showAlert(t('passwords_not_match'), 'warning');
+                showAlert('Şifreler eşleşmiyor', 'danger');
                 return;
             }
+            
+            // Show loading state
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.classList.add('btn-loading');
+            registerBtn.disabled = true;
             
             fetch('/api/auth/register', {
                 method: 'POST',
@@ -525,51 +807,46 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showAlert(t('register_success'), 'success');
+                    showAlert('Kayıt başarılı! Giriş yapabilirsiniz.', 'success');
                     bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-                    
-                    // Formu temizle
+                    // Clear form
                     document.getElementById('registerForm').reset();
                 } else {
-                    showAlert(data.message, 'danger');
+                    showAlert(data.message || 'Kayıt hatası', 'danger');
                 }
             })
             .catch(error => {
-                showAlert(t('register_error') + ' ' + error.message, 'danger');
+                console.error('Register error:', error);
+                showAlert('Bağlantı hatası', 'danger');
+            })
+            .finally(() => {
+                registerBtn.classList.remove('btn-loading');
+                registerBtn.disabled = false;
             });
         }
 
         function showAlert(message, type) {
             const alertContainer = document.getElementById('alertContainer');
-            const alertId = 'alert-' + Date.now();
-            
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" id="${alertId}">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             
-            // 5 saniye sonra otomatik kapat
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            // Auto dismiss after 5 seconds
             setTimeout(() => {
-                const alert = document.getElementById(alertId);
-                if (alert) {
+                if (alert.parentNode) {
                     alert.remove();
                 }
             }, 5000);
         }
 
-        // Enter tuşu ile giriş
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (document.getElementById('registerModal').classList.contains('show')) {
-                    registerUser();
-                } else {
-                    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-                }
-            }
-        });
-
+        // PWA Support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/static/service-worker.js');

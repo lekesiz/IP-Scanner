@@ -3,685 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="title">IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı</title>
+    <title data-i18n="title">IP Scanner V4.0 - Profesyonel Ağ Tarayıcı</title>
+    
+    <!-- Bootstrap 5.3 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6.4 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
     <meta name="theme-color" content="#667eea">
+    
     <style>
-        .device-card {
-            transition: transform 0.2s;
-            cursor: pointer;
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
         }
-        .device-card:hover {
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* Modern Card Design */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
-        .confidence-badge {
-            font-size: 0.8em;
+
+        /* Professional Header */
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
-        .discovery-method {
-            font-size: 0.7em;
-            margin: 1px;
+
+        .main-header h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5rem;
         }
-        .loading {
-            display: none;
+
+        .main-header p {
+            opacity: 0.9;
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
         }
-        .scan-options {
-            background: var(--bs-secondary-bg);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
+
+        /* Modern Buttons */
+        .btn {
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
         }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: var(--box-shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #fd7e14 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #e83e8c 100%);
+        }
+
+        /* Device Cards */
+        .device-card {
+            transition: var(--transition);
+            cursor: pointer;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .device-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .device-card.online {
+            border-left-color: var(--success-color);
+        }
+
+        .device-card.offline {
+            border-left-color: var(--danger-color);
+        }
+
         .device-type-icon {
-            font-size: 1.5em;
-            margin-right: 10px;
+            font-size: 2rem;
+            margin-right: 1rem;
+            color: var(--primary-color);
         }
+
+        /* Stats Cards */
         .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
         }
-        .modal-xl {
-            max-width: 90%;
+
+        .stats-card .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
         }
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+
+        .stats-card .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .user-menu {
-            position: fixed;
-            top: 20px;
-            right: 80px;
-            z-index: 1000;
+
+        /* Modern Forms */
+        .form-control {
+            border-radius: var(--border-radius);
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
         }
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #dc3545;
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        /* Professional Sidebar */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+        }
+
+        .sidebar .nav-link {
+            color: var(--dark-color);
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
+            transform: translateX(5px);
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            animation: spin 1s linear infinite;
         }
-        .dark-mode .sidebar {
-            background: #1a1a1a !important;
-            color: #ffffff !important;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .dark-mode .main-content {
-            background: #2d2d2d !important;
-            color: #ffffff !important;
+
+        /* Professional Tables */
+        .table {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
         }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Dark Mode */
+        .dark-mode {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        }
+
         .dark-mode .card {
-            background: #3a3a3a !important;
-            border-color: #555 !important;
+            background: rgba(45, 55, 72, 0.95);
+            color: white;
         }
-        .dark-mode .table {
-            color: #ffffff !important;
+
+        .dark-mode .sidebar {
+            background: rgba(45, 55, 72, 0.95);
         }
-        .dark-mode .modal-content {
-            background: #3a3a3a !important;
-            color: #ffffff !important;
-        }
-        .language-selector {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-        }
-        
-        /* Mobil Responsive Tasarım */
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100vh;
-                width: 280px;
-                z-index: 1050;
-                transition: left 0.3s ease;
-                overflow-y: auto;
+            .main-header h1 {
+                font-size: 2rem;
             }
             
-            .sidebar.show {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 0 !important;
-                padding: 10px !important;
-            }
-            
-            .mobile-menu-toggle {
-                display: block !important;
-                position: fixed;
-                top: 20px;
-                left: 20px;
-                z-index: 1060;
-                background: var(--bs-primary);
-                border: none;
-                color: white;
-                padding: 8px 12px;
-                border-radius: 5px;
-            }
-            
-            .language-selector {
-                top: 20px;
-                left: 80px;
-            }
-            
-            .theme-toggle {
-                top: 20px;
-                right: 20px;
-            }
-            
-            .user-menu {
-                top: 20px;
-                right: 80px;
-            }
-            
-            .notification-badge {
-                top: 20px;
-                right: 160px;
-            }
-            
-            .device-card {
-                margin-bottom: 15px;
-            }
-            
-            .device-card .card-body {
-                padding: 15px;
+            .stats-card .stats-number {
+                font-size: 2rem;
             }
             
             .device-type-icon {
-                font-size: 1.2em;
-            }
-            
-            .stats-card {
-                margin-bottom: 10px;
-            }
-            
-            .modal-xl {
-                max-width: 95%;
-                margin: 10px;
-            }
-            
-            .modal-dialog {
-                margin: 10px;
-            }
-            
-            .table-responsive {
-                font-size: 0.9em;
-            }
-            
-            .btn {
-                padding: 8px 12px;
-                font-size: 0.9em;
-            }
-            
-            .form-control {
-                font-size: 16px; /* iOS zoom önleme */
-            }
-            
-            .quick-actions-mobile {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-top: 15px;
-            }
-            
-            .quick-actions-mobile .btn {
-                flex: 1;
-                min-width: 120px;
-            }
-            
-            .mobile-overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 1040;
-            }
-            
-            .mobile-overlay.show {
-                display: block;
-            }
-            
-            .mobile-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 0;
-                margin-bottom: 20px;
-                border-bottom: 1px solid var(--bs-border-color);
-            }
-            
-            .mobile-stats {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                margin-bottom: 20px;
-            }
-            
-            .mobile-stats .stats-card {
-                margin-bottom: 0;
-                text-align: center;
-            }
-            
-            .mobile-stats .stats-card h6 {
-                font-size: 0.9em;
-                margin: 0;
+                font-size: 1.5rem;
             }
         }
-        
-        /* Tablet Responsive */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .sidebar {
-                width: 250px;
-            }
-            
-            .main-content {
-                margin-left: 250px;
-            }
-            
-            .device-card {
-                margin-bottom: 20px;
-            }
-            
-            .mobile-menu-toggle {
-                display: none !important;
-            }
+
+        /* Professional Modals */
+        .modal-content {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
-        
-        /* Desktop */
-        @media (min-width: 1025px) {
-            .mobile-menu-toggle {
-                display: none !important;
-            }
-            
-            .mobile-overlay {
-                display: none !important;
-            }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
         }
-        
-        /* Touch Optimizasyonları */
-        @media (hover: none) and (pointer: coarse) {
-            .device-card:hover {
-                transform: none;
-            }
-            
-            .btn:hover {
-                transform: none;
-            }
-            
-            .device-card:active {
-                transform: scale(0.98);
-            }
-            
-            .btn:active {
-                transform: scale(0.95);
-            }
-        }
-        
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            .device-card,
-            .btn,
-            .sidebar {
-                transition: none;
-            }
-        }
-        
-        /* High Contrast Mode */
-        @media (prefers-contrast: high) {
-            .device-card {
-                border: 2px solid;
-            }
-            
-            .btn {
-                border: 2px solid;
-            }
-        }
-        
-        .traffic-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .anomaly-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 8px;
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-        }
-        
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #6c757d;
-        }
-        
-        .status-dot.active {
-            background: #28a745;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-dot.warning {
-            background: #ffc107;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        .anomaly-list {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-        }
-        
-        .anomaly-item {
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border-left: 4px solid;
-            background: var(--card-bg);
-        }
-        
-        .anomaly-item.info {
-            border-left-color: #17a2b8;
-            background: rgba(23, 162, 184, 0.1);
-        }
-        
-        .anomaly-item.warning {
-            border-left-color: #ffc107;
-            background: rgba(255, 193, 7, 0.1);
-        }
-        
-        .anomaly-item.danger {
-            border-left-color: #dc3545;
-            background: rgba(220, 53, 69, 0.1);
-        }
-        
-        .anomaly-item .anomaly-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        
-        .anomaly-item .anomaly-message {
-            font-weight: 600;
-            color: var(--text-color);
-        }
-        
-        .anomaly-item .anomaly-details {
-            font-size: 0.9em;
-            color: var(--text-muted);
-        }
-        
-        .anomaly-item .anomaly-time {
-            font-size: 0.8em;
-            color: var(--text-muted);
-        }
-        
-        .no-anomalies {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 20px;
-            font-style: italic;
-        }
-        
-        .toast-notification {
+
+        /* Notification System */
+        .notification-toast {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             z-index: 9999;
-            max-width: 300px;
-            animation: slideIn 0.3s ease-out;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
-        
-        .toast-notification.danger {
-            border-left: 4px solid #dc3545;
-            background: rgba(220, 53, 69, 0.1);
+
+        /* Professional Badges */
+        .badge {
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
         }
-        
-        .toast-notification.warning {
-            border-left: 4px solid #ffc107;
-            background: rgba(255, 193, 7, 0.1);
+
+        .confidence-badge {
+            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
         }
-        
-        .toast-notification.info {
-            border-left: 4px solid #17a2b8;
-            background: rgba(23, 162, 184, 0.1);
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
-        
-        .toast-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
+        .action-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            cursor: pointer;
         }
-        
-        .toast-content i {
-            font-size: 16px;
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+
+        .action-card i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .action-card h5 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <!-- Mobil Overlay -->
-    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
-    
-    <!-- Mobil Menü Toggle Butonu -->
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Dil seçici -->
-    <div class="language-selector">
-        <select class="form-select form-select-sm" id="langSelect" style="width: 120px;" onchange="changeLang(this.value)">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-        </select>
-    </div>
-
-    <!-- Tema Değiştirme Butonu -->
-    <div class="theme-toggle">
-        <button class="btn btn-outline-secondary" onclick="toggleTheme()" id="themeToggle">
-            <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
-    </div>
-
-    <!-- Kullanıcı Menüsü -->
-    <div class="user-menu dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user"></i> <span data-i18n="user">Kullanıcı</span>
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="showProfile()">
-                <i class="fas fa-user-circle"></i> <span data-i18n="profile">Profil</span>
-            </a></li>
-            <li><a class="dropdown-item" href="#" onclick="showSettings()">
-                <i class="fas fa-cog"></i> <span data-i18n="settings">Ayarlar</span>
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Çıkış</span>
-            </a></li>
-        </ul>
-    </div>
-
-    <!-- Bildirim Butonu -->
-    <div class="position-fixed" style="top: 20px; right: 200px; z-index: 1000;">
-        <button class="btn btn-outline-warning position-relative" onclick="showNotifications()">
-            <i class="fas fa-bell"></i>
-            <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-        </button>
+    <!-- Professional Header -->
+    <div class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-network-wired me-3"></i>IP Scanner V4.0</h1>
+                    <p>Profesyonel Ağ Tarama ve Cihaz Tespit Sistemi</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+                        <!-- Language Selector -->
+                        <div class="language-selector">
+                            <select class="form-select form-select-sm" id="languageSelect">
+                                <option value="tr">🇹🇷 Türkçe</option>
+                                <option value="en">🇺🇸 English</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Theme Toggle -->
+                        <button class="btn btn-outline-light btn-sm theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        
+                        <!-- User Menu -->
+                        <div class="dropdown user-menu">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>
+                                <span id="username">Kullanıcı</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" id="profileLink"><i class="fas fa-user-cog me-2"></i>Profil</a></li>
+                                <li><a class="dropdown-item" href="#" id="settingsLink"><i class="fas fa-cog me-2"></i>Ayarlar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" id="logoutLink"><i class="fas fa-sign-out-alt me-2"></i>Çıkış</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Notifications -->
+                        <div class="position-relative">
+                            <button class="btn btn-outline-light btn-sm" id="notificationBtn">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 bg-dark text-white p-4 sidebar" style="min-height: 100vh;">
-                <div class="mobile-header d-md-none">
-                    <h3 class="mb-0">
-                        <i class="fas fa-network-wired"></i>
-                        IP Scanner V3.4
-                    </h3>
-                    <button class="btn-close btn-close-white" onclick="closeMobileMenu()"></button>
+            <!-- Professional Sidebar -->
+            <div class="col-md-3 col-lg-2">
+                <div class="sidebar">
+                    <h5 class="mb-3"><i class="fas fa-tachometer-alt me-2"></i>Kontrol Paneli</h5>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" id="dashboardLink" data-section="dashboard">
+                            <i class="fas fa-home me-2"></i>Ana Sayfa
+                        </a>
+                        <a class="nav-link" href="#" id="scanLink" data-section="scan">
+                            <i class="fas fa-search me-2"></i>Tarama
+                        </a>
+                        <a class="nav-link" href="#" id="devicesLink" data-section="devices">
+                            <i class="fas fa-desktop me-2"></i>Cihazlar
+                        </a>
+                        <a class="nav-link" href="#" id="networkMapLink" data-section="network-map">
+                            <i class="fas fa-project-diagram me-2"></i>Ağ Haritası
+                        </a>
+                        <a class="nav-link" href="#" id="reportsLink" data-section="reports">
+                            <i class="fas fa-chart-bar me-2"></i>Raporlar
+                        </a>
+                        <a class="nav-link" href="#" id="trafficLink" data-section="traffic">
+                            <i class="fas fa-chart-line me-2"></i>Canlı Trafik
+                        </a>
+                        <a class="nav-link" href="#" id="settingsLink" data-section="settings">
+                            <i class="fas fa-cog me-2"></i>Ayarlar
+                        </a>
+                    </nav>
                 </div>
-                
-                <h3 class="mb-4 d-none d-md-block">
-                    <i class="fas fa-network-wired"></i>
-                    IP Scanner V3.4
-                </h3>
-                
-                <!-- Tarama Seçenekleri -->
-                <div class="mb-4">
-                    <h5 data-i18n="scan_type">Tarama Türü</h5>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="scanType" id="basicScan" value="basic" checked>
-                        <label class="form-check-label" for="basicScan">
-                            <i class="fas fa-search"></i> <span data-i18n="basic_scan">Temel Tarama</span>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="scanType" id="fastScan" value="fast">
-                        <label class="form-check-label" for="fastScan">
-                            <i class="fas fa-bolt"></i> <span data-i18n="fast_scan">Hızlı Tarama (Port Yok)</span>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="scanType" id="advancedScan" value="advanced">
-                        <label class="form-check-label" for="advancedScan">
-                            <i class="fas fa-microscope"></i> <span data-i18n="advanced_scan">Gelişmiş Tarama</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Gelişmiş Tarama Seçenekleri -->
-                <div id="advancedOptions" class="mb-4" style="display: none;">
-                    <h5 data-i18n="advanced_options">Gelişmiş Seçenekler</h5>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="enableNmap" checked>
-                        <label class="form-check-label" for="enableNmap">
-                            <i class="fas fa-fingerprint"></i> <span data-i18n="nmap_os">Nmap OS Tespiti</span>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="enableDhcp" checked>
-                        <label class="form-check-label" for="enableDhcp">
-                            <i class="fas fa-broadcast-tower"></i> <span data-i18n="dhcp_discovery">DHCP Keşfi</span>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="enableNetbios" checked>
-                        <label class="form-check-label" for="enableNetbios">
-                            <i class="fas fa-desktop"></i> <span data-i18n="netbios_discovery">NetBIOS Keşfi</span>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="enableMdns" checked>
-                        <label class="form-check-label" for="enableMdns">
-                            <i class="fas fa-apple-alt"></i> <span data-i18n="mdns_discovery">mDNS Keşfi</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- IP Aralığı -->
-                <div class="mb-4">
-                    <label for="ipRange" class="form-label" data-i18n="ip_range">IP Aralığı</label>
-                    <input type="text" class="form-control" id="ipRange" value="192.168.1.0/24">
-                </div>
-
-                <!-- Tarama Butonu -->
-                <button class="btn btn-primary w-100 mb-3" onclick="startScan()" id="scanBtn">
-                    <i class="fas fa-play"></i> <span data-i18n="start_scan">Taramayı Başlat</span>
-                </button>
-
-                <!-- İstatistikler -->
-                <div class="mt-4">
-                    <h5 data-i18n="statistics">İstatistikler</h5>
-                    <div id="stats">
-                        <p class="text-muted" data-i18n="no_scan_yet">Henüz tarama yapılmadı</p>
-                    </div>
-                </div>
-
-                <!-- Hızlı Eylemler -->
-                <div class="mt-4">
-                    <h5 data-i18n="quick_actions">Hızlı Eylemler</h5>
-                    <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="generateNetworkMap()">
-                        <i class="fas fa-project-diagram"></i> <span data-i18n="network_map">Ağ Haritası</span>
-                    </button>
-                    <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="generateReports()">
-                        <i class="fas fa-file-alt"></i> <span data-i18n="generate_report">Rapor Oluştur</span>
-                    </button>
-                    <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="showEmailModal()">
-                        <i class="fas fa-envelope"></i> <span data-i18n="send_email">E-posta Gönder</span>
-                    </button>
-                    <button class="btn btn-outline-light btn-sm w-100 mb-2" onclick="showTrafficModal()">
-                        <i class="fas fa-tachometer-alt"></i> <span data-i18n="live_traffic">Canlı Trafik</span>
-                    </button>
-                    <button class="btn btn-outline-light btn-sm w-100" onclick="startMonitoring()">
-                        <i class="fas fa-eye"></i> <span data-i18n="network_monitor">Ağ İzleme</span>
-                    </button>
-                </div>
-                
-                <button class="sidebar-btn" onclick="showNetworkTraffic()">
-                    <i class="fas fa-chart-line"></i>
-                    <span data-tr="live_traffic">Canlı Trafik</span>
-                </button>
-                
-                <button class="sidebar-btn" onclick="showAnomalyDetection()">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span data-tr="anomaly_detection">Anomali Tespiti</span>
-                </button>
             </div>
 
-            <!-- Ana İçerik -->
-            <div class="col-md-9 p-4 main-content">
-                <!-- Mobil İstatistikler -->
-                <div class="mobile-stats d-md-none" id="mobileStats" style="display: none;">
-                    <!-- Mobil istatistikler buraya yüklenecek -->
-                </div>
-                
-                <!-- Mobil Hızlı Eylemler -->
-                <div class="quick-actions-mobile d-md-none" id="mobileQuickActions" style="display: none;">
-                    <button class="btn btn-primary btn-sm" onclick="generateNetworkMap()">
-                        <i class="fas fa-project-diagram"></i> <span data-i18n="network_map">Ağ Haritası</span>
-                    </button>
-                    <button class="btn btn-success btn-sm" onclick="generateReports()">
-                        <i class="fas fa-file-alt"></i> <span data-i18n="generate_report">Rapor</span>
-                    </button>
-                    <button class="btn btn-warning btn-sm" onclick="showEmailModal()">
-                        <i class="fas fa-envelope"></i> <span data-i18n="send_email">E-posta</span>
-                    </button>
-                    <button class="btn btn-info btn-sm" onclick="showTrafficModal()">
-                        <i class="fas fa-tachometer-alt"></i> <span data-i18n="live_traffic">Canlı Trafik</span>
-                    </button>
-                    <button class="btn btn-info btn-sm" onclick="startMonitoring()">
-                        <i class="fas fa-eye"></i> <span data-i18n="network_monitor">İzleme</span>
-                    </button>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 data-i18n="network_devices">Ağ Cihazları</h2>
-                    <div class="loading" id="loading">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden" data-i18n="scanning">Taranıyor...</span>
+            <!-- Main Content Area -->
+            <div class="col-md-9 col-lg-10">
+                <div class="main-content">
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <div class="action-card" id="quickScanBtn">
+                            <i class="fas fa-bolt"></i>
+                            <h5>Hızlı Tarama</h5>
+                            <p>Hızlı ağ taraması başlat</p>
                         </div>
-                        <span class="ms-2" data-i18n="scanning">Taranıyor...</span>
+                        <div class="action-card" id="advancedScanBtn">
+                            <i class="fas fa-microscope"></i>
+                            <h5>Gelişmiş Tarama</h5>
+                            <p>Detaylı cihaz analizi</p>
+                        </div>
+                        <div class="action-card" id="networkMapBtn">
+                            <i class="fas fa-sitemap"></i>
+                            <h5>Ağ Haritası</h5>
+                            <p>Görsel ağ topolojisi</p>
+                        </div>
+                        <div class="action-card" id="generateReportBtn">
+                            <i class="fas fa-file-alt"></i>
+                            <h5>Rapor Oluştur</h5>
+                            <p>PDF ve HTML raporları</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Cihaz Listesi -->
-                <div id="deviceList" class="row">
-                    <div class="col-12">
-                        <p class="text-muted" data-i18n="start_scan_hint">Taramayı başlatmak için sol paneldeki butonu kullanın.</p>
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <div class="stats-number" id="totalDevices">0</div>
+                                        <div class="stats-label">Toplam Cihaz</div>
+                                    </div>
+                                    <i class="fas fa-desktop ms-auto" style="font-size: 2rem; opacity: 0.7;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <div class="stats-number" id="onlineDevices">0</div>
+                                        <div class="stats-label">Çevrimiçi</div>
+                                    </div>
+                                    <i class="fas fa-wifi ms-auto" style="font-size: 2rem; opacity: 0.7;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <div class="stats-number" id="openPorts">0</div>
+                                        <div class="stats-label">Açık Port</div>
+                                    </div>
+                                    <i class="fas fa-door-open ms-auto" style="font-size: 2rem; opacity: 0.7;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <div class="stats-number" id="scanTime">0s</div>
+                                        <div class="stats-label">Tarama Süresi</div>
+                                    </div>
+                                    <i class="fas fa-clock ms-auto" style="font-size: 2rem; opacity: 0.7;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scan Options -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Tarama Seçenekleri</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="ipRange" class="form-label">IP Aralığı</label>
+                                    <input type="text" class="form-control" id="ipRange" value="192.168.1.0/24" placeholder="192.168.1.0/24">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tarama Türü</label>
+                                    <div class="d-flex gap-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="portScan" checked>
+                                            <label class="form-check-label" for="portScan">Port Tarama</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="nmapScan">
+                                            <label class="form-check-label" for="nmapScan">Nmap</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Devices Grid -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Ağ Cihazları</h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="refreshBtn">
+                                    <i class="fas fa-sync-alt me-1"></i>Yenile
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm" id="exportBtn">
+                                    <i class="fas fa-download me-1"></i>Dışa Aktar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="devicesContainer" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+                                <!-- Devices will be loaded here -->
+                            </div>
+                            
+                            <!-- Loading State -->
+                            <div id="loadingState" class="text-center py-5" style="display: none;">
+                                <div class="loading-spinner mx-auto mb-3"></div>
+                                <p class="text-muted">Tarama yapılıyor...</p>
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div id="emptyState" class="text-center py-5">
+                                <i class="fas fa-search" style="font-size: 4rem; color: #dee2e6;"></i>
+                                <h5 class="mt-3 text-muted">Henüz tarama yapılmadı</h5>
+                                <p class="text-muted">Ağ cihazlarını görmek için tarama başlatın</p>
+                                <button class="btn btn-primary" id="startScanBtn">
+                                    <i class="fas fa-play me-2"></i>Tarama Başlat
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -757,29 +632,45 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--bs-primary);"></i>
-                        <h4 class="mt-2" data-i18n="ip_scanner_user">IP Scanner Kullanıcısı</h4>
-                        <p class="text-muted" data-i18n="network_admin">Ağ Yöneticisi</p>
-                    </div>
                     <div class="row">
-                        <div class="col-md-6">
-                            <h6 data-i18n="usage_stats">Kullanım İstatistikleri</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-search"></i> <span data-i18n="total_scans">Toplam Tarama</span>: 127</li>
-                                <li><i class="fas fa-eye"></i> <span data-i18n="monitoring_hours">İzleme Saati</span>: 48h</li>
-                                <li><i class="fas fa-file-alt"></i> <span data-i18n="report_count">Rapor Sayısı</span>: 23</li>
-                            </ul>
+                        <div class="col-md-4 text-center">
+                            <div class="profile-avatar mb-3">
+                                <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--primary-color);"></i>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6 data-i18n="recent_activities">Son Aktiviteler</h6>
-                            <ul class="list-unstyled">
-                                <li><small class="text-muted" data-i18n="activity_2_hours">2 saat önce - Ağ taraması</small></li>
-                                <li><small class="text-muted" data-i18n="activity_1_day">1 gün önce - Rapor oluşturuldu</small></li>
-                                <li><small class="text-muted" data-i18n="activity_3_days">3 gün önce - E-posta gönderildi</small></li>
-                            </ul>
+                        <div class="col-md-8">
+                            <div class="profile-info">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Kullanıcı Adı</label>
+                                    <p id="profileUsername" class="mb-0">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">E-posta</label>
+                                    <p id="profileEmail" class="mb-0">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Ad Soyad</label>
+                                    <p id="profileFullName" class="mb-0">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Rol</label>
+                                    <p id="profileRole" class="mb-0">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Hesap Oluşturma Tarihi</label>
+                                    <p id="profileCreatedAt" class="mb-0">-</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Son Giriş</label>
+                                    <p id="profileLastLogin" class="mb-0">-</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close">Kapat</button>
+                    <button type="button" class="btn btn-primary" onclick="editProfile()" data-i18n="edit_profile">Profili Düzenle</button>
                 </div>
             </div>
         </div>
@@ -898,12 +789,35 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Kontrol Butonları -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <button id="startTrafficBtn" class="btn btn-success me-2">
+                                        <i class="fas fa-play"></i> <span data-i18n="start_monitoring">İzlemeyi Başlat</span>
+                                    </button>
+                                    <button id="stopTrafficBtn" class="btn btn-danger me-2" style="display: none;">
+                                        <i class="fas fa-stop"></i> <span data-i18n="stop_monitoring">Durdur</span>
+                                    </button>
+                                    <span id="trafficStatus" class="badge bg-secondary">
+                                        <i class="fas fa-circle"></i> <span data-i18n="stopped">Durduruldu</span>
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-info-circle"></i> <span data-i18n="auto_refresh">Her 2 saniyede bir güncellenir</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trafik İstatistikleri -->
                     <div class="row mb-3">
                         <div class="col-6 col-md-3">
                             <div class="card text-center">
                                 <div class="card-body">
                                     <h6 data-i18n="bytes_sent">Gönderilen (B)</h6>
-                                    <div id="trafficBytesSent" class="fw-bold">-</div>
+                                    <div id="trafficBytesSent" class="fw-bold text-primary">-</div>
                                 </div>
                             </div>
                         </div>
@@ -911,7 +825,7 @@
                             <div class="card text-center">
                                 <div class="card-body">
                                     <h6 data-i18n="bytes_recv">Alınan (B)</h6>
-                                    <div id="trafficBytesRecv" class="fw-bold">-</div>
+                                    <div id="trafficBytesRecv" class="fw-bold text-success">-</div>
                                 </div>
                             </div>
                         </div>
@@ -919,7 +833,7 @@
                             <div class="card text-center">
                                 <div class="card-body">
                                     <h6 data-i18n="packets_sent">Gönderilen Paket</h6>
-                                    <div id="trafficPacketsSent" class="fw-bold">-</div>
+                                    <div id="trafficPacketsSent" class="fw-bold text-info">-</div>
                                 </div>
                             </div>
                         </div>
@@ -927,27 +841,44 @@
                             <div class="card text-center">
                                 <div class="card-body">
                                     <h6 data-i18n="packets_recv">Alınan Paket</h6>
-                                    <div id="trafficPacketsRecv" class="fw-bold">-</div>
+                                    <div id="trafficPacketsRecv" class="fw-bold text-warning">-</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <h6 class="mt-4 mb-2" data-i18n="active_connections">Aktif Bağlantılar</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="local_address">Yerel Adres</th>
-                                    <th data-i18n="remote_address">Uzak Adres</th>
-                                    <th data-i18n="status">Durum</th>
-                                    <th data-i18n="pid">PID</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trafficConnections">
-                                <tr><td colspan="4" class="text-center text-muted" data-i18n="no_connections">Bağlantı yok</td></tr>
-                            </tbody>
-                        </table>
+                    
+                    <!-- Aktif Bağlantılar -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0" data-i18n="active_connections">Aktif Bağlantılar</h6>
+                                <span id="connectionCount" class="badge bg-primary">0</span>
+                            </div>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered table-hover">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th data-i18n="local_address">Yerel Adres</th>
+                                            <th data-i18n="remote_address">Uzak Adres</th>
+                                            <th data-i18n="status">Durum</th>
+                                            <th data-i18n="pid">PID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trafficConnections">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                <span data-i18n="no_connections">Bağlantı yok</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close">Kapat</button>
                 </div>
             </div>
         </div>
@@ -1002,1326 +933,11 @@
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Global değişkenler
-        let devices = [];
-        let notifications = [];
-        let lang = localStorage.getItem('lang') || 'tr';
-        let currentTheme = localStorage.getItem('theme') || 'light';
-        
-        const translations = {
-            tr: {
-                'title': 'IP Scanner V3.4 - Gelişmiş Ağ Tarayıcı',
-                'user': 'Kullanıcı',
-                'profile': 'Profil',
-                'settings': 'Ayarlar',
-                'logout': 'Çıkış',
-                'logout_confirm': 'Çıkış yapmak istediğinizden emin misiniz?',
-                'logout_success': 'Çıkış yapıldı',
-                'settings_saved': 'Ayarlar kaydedildi!',
-                'scan_type': 'Tarama Türü',
-                'basic_scan': 'Temel Tarama',
-                'fast_scan': 'Hızlı Tarama (Port Yok)',
-                'advanced_scan': 'Gelişmiş Tarama',
-                'advanced_options': 'Gelişmiş Seçenekler',
-                'nmap_os': 'Nmap OS Tespiti',
-                'dhcp_discovery': 'DHCP Keşfi',
-                'netbios_discovery': 'NetBIOS Keşfi',
-                'mdns_discovery': 'mDNS Keşfi',
-                'ip_range': 'IP Aralığı',
-                'start_scan': 'Taramayı Başlat',
-                'statistics': 'İstatistikler',
-                'no_scan_yet': 'Henüz tarama yapılmadı',
-                'quick_actions': 'Hızlı Eylemler',
-                'network_map': 'Ağ Haritası',
-                'generate_report': 'Rapor Oluştur',
-                'send_email': 'E-posta Gönder',
-                'network_monitor': 'Ağ İzleme',
-                'network_devices': 'Ağ Cihazları',
-                'scanning': 'Taranıyor...',
-                'no_devices': 'Cihaz bulunamadı.',
-                'start_scan_hint': 'Taramayı başlatmak için sol paneldeki butonu kullanın.',
-                'device_details': 'Cihaz Detayları',
-                'send_email_report': 'E-posta ile Rapor Gönder',
-                'recipient_email': 'Alıcı E-posta',
-                'report_type': 'Rapor Türü',
-                'html_report': 'HTML Rapor',
-                'pdf_report': 'PDF Rapor',
-                'smtp_server': 'SMTP Sunucu',
-                'smtp_port': 'SMTP Port',
-                'email_address': 'E-posta Adresi',
-                'password': 'Şifre',
-                'cancel': 'İptal',
-                'send': 'Gönder',
-                'user_profile': 'Kullanıcı Profili',
-                'ip_scanner_user': 'IP Scanner Kullanıcısı',
-                'network_admin': 'Ağ Yöneticisi',
-                'usage_stats': 'Kullanım İstatistikleri',
-                'total_scans': 'Toplam Tarama',
-                'monitoring_hours': 'İzleme Saati',
-                'report_count': 'Rapor Sayısı',
-                'recent_activities': 'Son Aktiviteler',
-                'activity_2_hours': '2 saat önce - Ağ taraması',
-                'activity_1_day': '1 gün önce - Rapor oluşturuldu',
-                'activity_3_days': '3 gün önce - E-posta gönderildi',
-                'app_settings': 'Uygulama Ayarları',
-                'appearance': 'Görünüm',
-                'theme': 'Tema',
-                'light_theme': 'Açık Tema',
-                'dark_theme': 'Koyu Tema',
-                'auto_theme': 'Otomatik',
-                'language': 'Dil',
-                'turkish': 'Türkçe',
-                'english': 'English',
-                'notifications': 'Bildirimler',
-                'email_notifications': 'E-posta Bildirimleri',
-                'anomaly_alerts': 'Anomali Uyarıları',
-                'scan_complete': 'Tarama Tamamlandı',
-                'scan_settings': 'Tarama Ayarları',
-                'default_ip_range': 'Varsayılan IP Aralığı',
-                'scan_timeout': 'Tarama Timeout (saniye)',
-                'security': 'Güvenlik',
-                'session_duration': 'Oturum Süresi',
-                '1_hour': '1 Saat',
-                '8_hours': '8 Saat',
-                '24_hours': '24 Saat',
-                'export_settings': 'Ayarları Dışa Aktar',
-                'save': 'Kaydet',
-                'anomaly_detected': 'Anomali Tespit Edildi',
-                'anomaly_message': '192.168.1.100 adresinden anormal trafik tespit edildi',
-                'anomaly_detected_message': '192.168.1.100 adresinden anormal trafik tespit edildi. Detaylar için tıklayın.',
-                'scan_completed': 'Tarama Tamamlandı',
-                'scan_completed_message': 'Ağ taraması başarıyla tamamlandı. 15 cihaz tespit edildi.',
-                'report_sent': 'Rapor Gönderildi',
-                'report_sent_message': 'Ağ raporu admin@company.com adresine gönderildi.',
-                '2_minutes_ago': '2 dakika önce',
-                '1_hour_ago': '1 saat önce',
-                '3_hours_ago': '3 saat önce',
-                'now': 'Şimdi',
-                'no_notifications': 'Bildirim bulunmuyor.',
-                'monitoring_started': 'Ağ İzleme Başlatıldı',
-                'monitoring_started_message': 'Ağ trafiği izlenmeye başlandı. Anomali tespit edildiğinde bildirim alacaksınız.',
-                'unknown_device': 'Bilinmeyen Cihaz',
-                'unknown': 'Bilinmeyen',
-                'confidence': 'Güven',
-                'basic_info': 'Temel Bilgiler',
-                'ip_address': 'IP Adresi',
-                'mac_address': 'MAC Adresi',
-                'vendor': 'Vendor',
-                'device_type': 'Cihaz Türü',
-                'confidence_level': 'Güven Seviyesi',
-                'status': 'Durum',
-                'discovery_methods': 'Keşif Yöntemleri',
-                'no_info': 'Bilgi yok',
-                'operating_system': 'İşletim Sistemi',
-                'os': 'OS',
-                'accuracy': 'Doğruluk',
-                'details': 'Detay',
-                'open_ports_services': 'Açık Portlar ve Servisler',
-                'port': 'Port',
-                'service': 'Servis',
-                'product': 'Ürün',
-                'version': 'Versiyon',
-                'additional_info': 'Ek Bilgiler',
-                'devices': 'Cihaz',
-                'open_ports': 'Açık Port',
-                'device_types': 'Cihaz Türü',
-                'scan_first': 'Önce tarama yapın!',
-                'map_error': 'Ağ haritası oluşturulamadı',
-                'reports_generated': 'Raporlar oluşturuldu!',
-                'report_error': 'Rapor oluşturulamadı',
-                'fill_all_fields': 'Tüm alanları doldurun!',
-                'email_sent_success': 'E-posta başarıyla gönderildi!',
-                'email_sent_error': 'E-posta gönderilemedi',
-                'live_traffic': 'Canlı Trafik',
-                'bytes_sent': 'Gönderilen (B)',
-                'bytes_recv': 'Alınan (B)',
-                'packets_sent': 'Gönderilen Paket',
-                'packets_recv': 'Alınan Paket',
-                'active_connections': 'Aktif Bağlantılar',
-                'local_address': 'Yerel Adres',
-                'remote_address': 'Uzak Adres',
-                'no_connections': 'Bağlantı yok',
-                'anomaly_detection': 'Anomali Tespiti',
-                'start_detection': 'Tespiti Başlat',
-                'stop_detection': 'Durdur',
-                'detection_active': 'Tespit Aktif',
-                'detection_stopped': 'Tespit Durduruldu',
-                'detected_anomalies': 'Tespit Edilen Anomaliler',
-                'no_anomalies_detected': 'Henüz anomali tespit edilmedi',
-                'traffic_summary': 'Trafik Özeti',
-                'bytes_received': 'Alınan'
-            },
-            en: {
-                'title': 'IP Scanner V3.4 - Advanced Network Scanner',
-                'user': 'User',
-                'profile': 'Profile',
-                'settings': 'Settings',
-                'logout': 'Logout',
-                'logout_confirm': 'Are you sure you want to logout?',
-                'logout_success': 'Logged out successfully',
-                'settings_saved': 'Settings saved!',
-                'scan_type': 'Scan Type',
-                'basic_scan': 'Basic Scan',
-                'fast_scan': 'Fast Scan (No Ports)',
-                'advanced_scan': 'Advanced Scan',
-                'advanced_options': 'Advanced Options',
-                'nmap_os': 'Nmap OS Detection',
-                'dhcp_discovery': 'DHCP Discovery',
-                'netbios_discovery': 'NetBIOS Discovery',
-                'mdns_discovery': 'mDNS Discovery',
-                'ip_range': 'IP Range',
-                'start_scan': 'Start Scan',
-                'statistics': 'Statistics',
-                'no_scan_yet': 'No scan performed yet',
-                'quick_actions': 'Quick Actions',
-                'network_map': 'Network Map',
-                'generate_report': 'Generate Report',
-                'send_email': 'Send Email',
-                'network_monitor': 'Network Monitor',
-                'network_devices': 'Network Devices',
-                'scanning': 'Scanning...',
-                'no_devices': 'No devices found.',
-                'start_scan_hint': 'Use the button on the left panel to start scanning.',
-                'device_details': 'Device Details',
-                'send_email_report': 'Send Report via Email',
-                'recipient_email': 'Recipient Email',
-                'report_type': 'Report Type',
-                'html_report': 'HTML Report',
-                'pdf_report': 'PDF Report',
-                'smtp_server': 'SMTP Server',
-                'smtp_port': 'SMTP Port',
-                'email_address': 'Email Address',
-                'password': 'Password',
-                'cancel': 'Cancel',
-                'send': 'Send',
-                'user_profile': 'User Profile',
-                'ip_scanner_user': 'IP Scanner User',
-                'network_admin': 'Network Administrator',
-                'usage_stats': 'Usage Statistics',
-                'total_scans': 'Total Scans',
-                'monitoring_hours': 'Monitoring Hours',
-                'report_count': 'Report Count',
-                'recent_activities': 'Recent Activities',
-                'activity_2_hours': '2 hours ago - Network scan',
-                'activity_1_day': '1 day ago - Report generated',
-                'activity_3_days': '3 days ago - Email sent',
-                'app_settings': 'Application Settings',
-                'appearance': 'Appearance',
-                'theme': 'Theme',
-                'light_theme': 'Light Theme',
-                'dark_theme': 'Dark Theme',
-                'auto_theme': 'Auto',
-                'language': 'Language',
-                'turkish': 'Turkish',
-                'english': 'English',
-                'notifications': 'Notifications',
-                'email_notifications': 'Email Notifications',
-                'anomaly_alerts': 'Anomaly Alerts',
-                'scan_complete': 'Scan Complete',
-                'scan_settings': 'Scan Settings',
-                'default_ip_range': 'Default IP Range',
-                'scan_timeout': 'Scan Timeout (seconds)',
-                'security': 'Security',
-                'session_duration': 'Session Duration',
-                '1_hour': '1 Hour',
-                '8_hours': '8 Hours',
-                '24_hours': '24 Hours',
-                'export_settings': 'Export Settings',
-                'save': 'Save',
-                'anomaly_detected': 'Anomaly Detected',
-                'anomaly_message': 'Abnormal traffic detected from 192.168.1.100',
-                'anomaly_detected_message': 'Abnormal traffic detected from 192.168.1.100. Click for details.',
-                'scan_completed': 'Scan Completed',
-                'scan_completed_message': 'Network scan completed successfully. 15 devices detected.',
-                'report_sent': 'Report Sent',
-                'report_sent_message': 'Network report sent to admin@company.com.',
-                '2_minutes_ago': '2 minutes ago',
-                '1_hour_ago': '1 hour ago',
-                '3_hours_ago': '3 hours ago',
-                'now': 'Now',
-                'no_notifications': 'No notifications.',
-                'monitoring_started': 'Network Monitoring Started',
-                'monitoring_started_message': 'Network traffic monitoring started. You will receive notifications when anomalies are detected.',
-                'unknown_device': 'Unknown Device',
-                'unknown': 'Unknown',
-                'confidence': 'Confidence',
-                'basic_info': 'Basic Information',
-                'ip_address': 'IP Address',
-                'mac_address': 'MAC Address',
-                'vendor': 'Vendor',
-                'device_type': 'Device Type',
-                'confidence_level': 'Confidence Level',
-                'status': 'Status',
-                'discovery_methods': 'Discovery Methods',
-                'no_info': 'No information',
-                'operating_system': 'Operating System',
-                'os': 'OS',
-                'accuracy': 'Accuracy',
-                'details': 'Details',
-                'open_ports_services': 'Open Ports and Services',
-                'port': 'Port',
-                'service': 'Service',
-                'product': 'Product',
-                'version': 'Version',
-                'additional_info': 'Additional Information',
-                'devices': 'Devices',
-                'open_ports': 'Open Ports',
-                'device_types': 'Device Types',
-                'scan_first': 'Please scan first!',
-                'map_error': 'Network map could not be created',
-                'reports_generated': 'Reports generated!',
-                'report_error': 'Report could not be created',
-                'fill_all_fields': 'Please fill all fields!',
-                'email_sent_success': 'Email sent successfully!',
-                'email_sent_error': 'Email could not be sent',
-                'live_traffic': 'Live Traffic',
-                'bytes_sent': 'Bytes Sent',
-                'bytes_recv': 'Bytes Received',
-                'packets_sent': 'Packets Sent',
-                'packets_recv': 'Packets Received',
-                'active_connections': 'Active Connections',
-                'local_address': 'Local Address',
-                'remote_address': 'Remote Address',
-                'no_connections': 'No connections',
-                'anomaly_detection': 'Anomaly Detection',
-                'start_detection': 'Start Detection',
-                'stop_detection': 'Stop Detection',
-                'detection_active': 'Detection Active',
-                'detection_stopped': 'Detection Stopped',
-                'detected_anomalies': 'Detected Anomalies',
-                'no_anomalies_detected': 'No anomalies detected yet',
-                'traffic_summary': 'Traffic Summary',
-                'bytes_received': 'Bytes Received'
-            }
-        };
-
-        function t(key) {
-            return translations[lang][key] || key;
-        }
-
-        function changeLang(newLang) {
-            lang = newLang;
-            localStorage.setItem('lang', lang);
-            applyTranslations();
-            
-            // Backend'e dil tercihini kaydet
-            if (typeof userManager !== 'undefined') {
-                fetch('/api/auth/settings', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
-                    },
-                    body: JSON.stringify({language: lang})
-                });
-            }
-        }
-
-        function applyTranslations() {
-            // Tüm data-i18n attribute'larına sahip elementleri güncelle
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (element.tagName === 'INPUT' && element.type === 'placeholder') {
-                    element.placeholder = t(key);
-                } else {
-                    element.textContent = t(key);
-                }
-            });
-            
-            // Select option'ları güncelle
-            document.querySelectorAll('option[data-i18n]').forEach(option => {
-                const key = option.getAttribute('data-i18n');
-                option.textContent = t(key);
-            });
-            
-            // Title güncelle
-            document.title = t('title');
-        }
-
-        // Sayfa yüklendiğinde tema ve dil ayarla
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kullanıcı giriş kontrolü
-            checkUserAuth();
-            
-            document.getElementById('langSelect').value = lang;
-            applyTranslations();
-            applyTheme(currentTheme);
-            loadNotifications();
-            initMobileFeatures();
-        });
-        
-        function checkUserAuth() {
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            const userInfo = localStorage.getItem('user_info');
-            
-            if (!token || !userInfo) {
-                // Kullanıcı giriş yapmamış, login sayfasına yönlendir
-                window.location.href = '/login';
-                return;
-            }
-            
-            try {
-                const user = JSON.parse(userInfo);
-                // Kullanıcı bilgilerini UI'da göster
-                if (user.username) {
-                    const userMenu = document.getElementById('userMenu');
-                    if (userMenu) {
-                        userMenu.innerHTML = `
-                            <span class="user-name">${user.full_name || user.username}</span>
-                            <small class="user-role">${user.role || 'user'}</small>
-                        `;
-                    }
-                }
-            } catch (e) {
-                console.error('Kullanıcı bilgileri parse edilemedi:', e);
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user_info');
-                window.location.href = '/login';
-            }
-        }
-
-        // Tema değiştirme
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            applyTheme(currentTheme);
-            localStorage.setItem('theme', currentTheme);
-        }
-
-        function applyTheme(theme) {
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('themeIcon');
-            const themeSelect = document.getElementById('themeSelect');
-            
-            html.setAttribute('data-bs-theme', theme);
-            
-            if (theme === 'dark') {
-                themeIcon.className = 'fas fa-sun';
-                document.body.classList.add('dark-mode');
-            } else {
-                themeIcon.className = 'fas fa-moon';
-                document.body.classList.remove('dark-mode');
-            }
-            
-            if (themeSelect) {
-                themeSelect.value = theme;
-            }
-        }
-
-        function changeTheme(theme) {
-            currentTheme = theme;
-            applyTheme(theme);
-            localStorage.setItem('theme', theme);
-        }
-
-        // Kullanıcı menüsü fonksiyonları
-        function showProfile() {
-            new bootstrap.Modal(document.getElementById('profileModal')).show();
-        }
-
-        function showSettings() {
-            new bootstrap.Modal(document.getElementById('settingsModal')).show();
-        }
-
-        function logout() {
-            if (confirm(t('logout_confirm'))) {
-                const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-                
-                if (token) {
-                    fetch('/api/auth/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Token'ları temizle
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user_info');
-                        
-                        // Login sayfasına yönlendir
-                        window.location.href = '/login';
-                    })
-                    .catch(error => {
-                        console.error('Logout hatası:', error);
-                        // Hata olsa bile token'ları temizle
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user_info');
-                        window.location.href = '/login';
-                    });
-                } else {
-                    // Token yoksa direkt temizle
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user_info');
-                    window.location.href = '/login';
-                }
-            }
-        }
-
-        function saveSettings() {
-            // Ayarları kaydet
-            alert(t('settings_saved'));
-            bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
-        }
-
-        function exportSettings() {
-            // Ayarları dışa aktar
-            const settings = {
-                theme: currentTheme,
-                notifications: {
-                    email: document.getElementById('emailNotifications').checked,
-                    anomaly: document.getElementById('anomalyAlerts').checked,
-                    scanComplete: document.getElementById('scanComplete').checked
-                }
-            };
-            
-            const blob = new Blob([JSON.stringify(settings, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ip_scanner_settings.json';
-            a.click();
-        }
-
-        // Bildirim sistemi
-        function loadNotifications() {
-            // Örnek bildirimler
-            notifications = [
-                {
-                    id: 1,
-                    type: 'warning',
-                    title: t('anomaly_detected'),
-                    message: t('anomaly_message'),
-                    time: t('2_minutes_ago'),
-                    read: false
-                },
-                {
-                    id: 2,
-                    type: 'info',
-                    title: t('scan_completed'),
-                    message: t('scan_completed_message'),
-                    time: t('1_hour_ago'),
-                    read: true
-                },
-                {
-                    id: 3,
-                    type: 'success',
-                    title: t('report_sent'),
-                    message: t('report_sent_message'),
-                    time: t('3_hours_ago'),
-                    read: true
-                }
-            ];
-            
-            updateNotificationCount();
-        }
-
-        function updateNotificationCount() {
-            const unreadCount = notifications.filter(n => !n.read).length;
-            const badge = document.getElementById('notificationCount');
-            
-            if (unreadCount > 0) {
-                badge.style.display = 'flex';
-                badge.textContent = unreadCount;
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function showNotifications() {
-            const modalBody = document.getElementById('notificationsList');
-            
-            if (notifications.length === 0) {
-                modalBody.innerHTML = `<p class="text-muted">${t('no_notifications')}</p>`;
-            } else {
-                modalBody.innerHTML = notifications.map(notification => `
-                    <div class="alert alert-${notification.type === 'warning' ? 'warning' : notification.type === 'info' ? 'info' : 'success'} ${notification.read ? 'opacity-75' : ''}">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>${notification.title}</strong>
-                                <p class="mb-0">${notification.message}</p>
-                            </div>
-                            <small class="text-muted">${notification.time}</small>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            // Tüm bildirimleri okundu olarak işaretle
-            notifications.forEach(n => n.read = true);
-            updateNotificationCount();
-            
-            new bootstrap.Modal(document.getElementById('notificationsModal')).show();
-        }
-
-        function addNotification(type, title, message) {
-            const notification = {
-                id: Date.now(),
-                type: type,
-                title: title,
-                message: message,
-                time: t('now'),
-                read: false
-            };
-            
-            notifications.unshift(notification);
-            updateNotificationCount();
-        }
-
-        // Ağ izleme
-        function startMonitoring() {
-            addNotification('info', t('monitoring_started'), t('monitoring_started_message'));
-            
-            // Simüle edilmiş anomali tespiti
-            setTimeout(() => {
-                addNotification('warning', t('anomaly_detected'), t('anomaly_detected_message'));
-            }, 5000);
-        }
-
-        // Tarama türü değişikliği
-        document.querySelectorAll('input[name="scanType"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const advancedOptions = document.getElementById('advancedOptions');
-                if (this.value === 'advanced') {
-                    advancedOptions.style.display = 'block';
-                } else {
-                    advancedOptions.style.display = 'none';
-                }
-            });
-        });
-
-        function startScan() {
-            // Authentication kontrolü
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if (!token) {
-                alert('Lütfen önce giriş yapın!');
-                window.location.href = '/login';
-                return;
-            }
-            
-            const ipRange = document.getElementById('ipRange').value;
-            const scanType = document.querySelector('input[name="scanType"]:checked').value;
-            
-            document.getElementById('loading').style.display = 'block';
-            
-            if (scanType === 'advanced') {
-                // Gelişmiş tarama
-                const advancedOptions = {
-                    ip_range: ipRange,
-                    enable_nmap: document.getElementById('enableNmap').checked,
-                    enable_dhcp: document.getElementById('enableDhcp').checked,
-                    enable_netbios: document.getElementById('enableNetbios').checked,
-                    enable_mdns: document.getElementById('enableMdns').checked
-                };
-                
-                fetch('/api/advanced-scan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(advancedOptions)
-                })
-                .then(response => {
-                    if (response.status === 401) {
-                        throw new Error('Lütfen önce giriş yapın!');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    devices = data.devices;
-                    displayDevices();
-                    updateStats();
-                    document.getElementById('loading').style.display = 'none';
-                    
-                    // Tarama tamamlandı bildirimi
-                    if (document.getElementById('scanComplete').checked) {
-                        addNotification('success', 'Tarama Tamamlandı', `${devices.length} cihaz tespit edildi.`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(error.message || 'Tarama sırasında hata oluştu');
-                    document.getElementById('loading').style.display = 'none';
-                });
-            } else if (scanType === 'fast') {
-                // Hızlı tarama (port tarama kapalı)
-                fetch('/api/scan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ip_range: ipRange, port_scan: false})
-                })
-                .then(response => {
-                    if (response.status === 401) {
-                        throw new Error('Lütfen önce giriş yapın!');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    devices = data.devices;
-                    displayDevices();
-                    updateStats();
-                    document.getElementById('loading').style.display = 'none';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(error.message || 'Tarama sırasında hata oluştu');
-                    document.getElementById('loading').style.display = 'none';
-                });
-            } else {
-                // Temel tarama (port tarama açık)
-                fetch('/api/scan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ip_range: ipRange, port_scan: true})
-                })
-                .then(response => {
-                    if (response.status === 401) {
-                        throw new Error('Lütfen önce giriş yapın!');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    devices = data.devices;
-                    displayDevices();
-                    updateStats();
-                    document.getElementById('loading').style.display = 'none';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(error.message || 'Tarama sırasında hata oluştu');
-                    document.getElementById('loading').style.display = 'none';
-                });
-            }
-        }
-
-        function displayDevices() {
-            const deviceList = document.getElementById('deviceList');
-            
-            if (devices.length === 0) {
-                deviceList.innerHTML = `<div class="col-12"><p class="text-muted">${t('no_devices')}</p></div>`;
-                return;
-            }
-
-            deviceList.innerHTML = devices.map(device => `
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card device-card" onclick="showDeviceDetails('${device.ip}')">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="device-type-icon">${getDeviceIcon(device.device_type)}</span>
-                                <div>
-                                    <h6 class="card-title mb-0">${device.ip}</h6>
-                                    <small class="text-muted">${device.device_type || t('unknown_device')}</small>
-                                </div>
-                            </div>
-                            <p class="card-text">
-                                <small class="text-muted">
-                                    <i class="fas fa-microchip"></i> ${device.mac}<br>
-                                    <i class="fas fa-industry"></i> ${device.vendor || t('unknown')}<br>
-                                    ${device.confidence ? `<span class="badge bg-${getConfidenceColor(device.confidence)} confidence-badge">${t('confidence')}: ${device.confidence}%</span>` : ''}
-                                </small>
-                            </p>
-                            ${device.discovery_methods ? `
-                                <div class="mt-2">
-                                    ${device.discovery_methods.map(method => 
-                                        `<span class="badge bg-secondary discovery-method">${method}</span>`
-                                    ).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function getDeviceIcon(deviceType) {
-            const icons = {
-                'Windows Cihazı': 'fab fa-windows',
-                'Linux Cihazı': 'fab fa-linux',
-                'Apple Cihazı': 'fab fa-apple',
-                'iOS Cihazı': 'fab fa-app-store-ios',
-                'Android Cihazı': 'fab fa-android',
-                'Router/Modem': 'fas fa-wifi',
-                'Web Sunucu': 'fas fa-server',
-                'FTP Sunucu': 'fas fa-file-upload',
-                'Bilinmeyen Cihaz': 'fas fa-question-circle'
-            };
-            return icons[deviceType] || 'fas fa-question-circle';
-        }
-
-        function getConfidenceColor(confidence) {
-            if (confidence >= 90) return 'success';
-            if (confidence >= 70) return 'warning';
-            return 'danger';
-        }
-
-        function showDeviceDetails(ip) {
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if (!token) {
-                alert('Lütfen önce giriş yapın!');
-                window.location.href = '/login';
-                return;
-            }
-            
-            fetch(`/api/device-details/${ip}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    if (response.status === 401) {
-                        throw new Error('Lütfen önce giriş yapın!');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'ok') {
-                        const device = data.device;
-                        const modalBody = document.getElementById('deviceModalBody');
-                        
-                        modalBody.innerHTML = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h6>${t('basic_info')}</h6>
-                                    <table class="table table-sm">
-                                        <tr><td>${t('ip_address')}:</td><td>${device.ip}</td></tr>
-                                        <tr><td>${t('mac_address')}:</td><td>${device.mac}</td></tr>
-                                        <tr><td>${t('vendor')}:</td><td>${device.vendor || t('unknown')}</td></tr>
-                                        <tr><td>${t('device_type')}:</td><td>${device.device_type}</td></tr>
-                                        <tr><td>${t('confidence_level')}:</td><td><span class="badge bg-${getConfidenceColor(device.confidence)}">${device.confidence}%</span></td></tr>
-                                        <tr><td>${t('status')}:</td><td><span class="badge bg-success">${device.status}</span></td></tr>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>${t('discovery_methods')}</h6>
-                                    <div class="mb-3">
-                                        ${device.discovery_methods ? device.discovery_methods.map(method => 
-                                            `<span class="badge bg-primary me-1">${method}</span>`
-                                        ).join('') : t('no_info')}
-                                    </div>
-                                    
-                                    ${device.os_info ? `
-                                        <h6>${t('operating_system')}</h6>
-                                        <table class="table table-sm">
-                                            <tr><td>${t('os')}:</td><td>${device.os_info.os_name}</td></tr>
-                                            <tr><td>${t('accuracy')}:</td><td>${device.os_info.os_accuracy}%</td></tr>
-                                            <tr><td>${t('details')}:</td><td>${device.os_info.os_line}</td></tr>
-                                        </table>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            
-                            ${device.services && device.services.length > 0 ? `
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <h6>${t('open_ports_services')}</h6>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th>${t('port')}</th>
-                                                        <th>${t('service')}</th>
-                                                        <th>${t('product')}</th>
-                                                        <th>${t('version')}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    ${device.services.map(service => `
-                                                        <tr>
-                                                            <td>${service.port}</td>
-                                                            <td>${service.service}</td>
-                                                            <td>${service.product || '-'}</td>
-                                                            <td>${service.version || '-'}</td>
-                                                        </tr>
-                                                    `).join('')}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            
-                            ${device.additional_info && Object.keys(device.additional_info).length > 0 ? `
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <h6>${t('additional_info')}</h6>
-                                        ${Object.entries(device.additional_info).map(([key, value]) => `
-                                            <div class="mb-2">
-                                                <strong>${key.toUpperCase()}:</strong>
-                                                <pre class="bg-light p-2 rounded">${JSON.stringify(value, null, 2)}</pre>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        `;
-                        
-                        new bootstrap.Modal(document.getElementById('deviceModal')).show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(error.message || 'Cihaz detayları alınırken hata oluştu');
-                });
-        }
-
-        function updateStats() {
-            const stats = document.getElementById('stats');
-            if (devices.length === 0) {
-                stats.innerHTML = `<p class="text-muted">${t('no_scan_yet')}</p>`;
-                return;
-            }
-
-            const deviceTypes = {};
-            const vendors = {};
-            let totalPorts = 0;
-
-            devices.forEach(device => {
-                deviceTypes[device.device_type] = (deviceTypes[device.device_type] || 0) + 1;
-                vendors[device.vendor] = (vendors[device.vendor] || 0) + 1;
-                if (device.open_ports) {
-                    totalPorts += device.open_ports.length;
-                }
-            });
-
-            stats.innerHTML = `
-                <div class="card stats-card mb-2">
-                    <div class="card-body p-2">
-                        <h6 class="mb-0">${devices.length} ${t('devices')}</h6>
-                    </div>
-                </div>
-                <div class="card stats-card mb-2">
-                    <div class="card-body p-2">
-                        <h6 class="mb-0">${totalPorts} ${t('open_ports')}</h6>
-                    </div>
-                </div>
-                <div class="card stats-card">
-                    <div class="card-body p-2">
-                        <h6 class="mb-0">${Object.keys(deviceTypes).length} ${t('device_types')}</h6>
-                    </div>
-                </div>
-            `;
-            
-            // Mobil istatistikleri de güncelle
-            updateMobileStats();
-        }
-
-        function generateNetworkMap() {
-            if (devices.length === 0) {
-                alert(t('scan_first'));
-                return;
-            }
-
-            fetch('/api/network-map')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        window.open(data.html_path, '_blank');
-                    } else {
-                        alert(t('map_error') + ': ' + data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function generateReports() {
-            if (devices.length === 0) {
-                alert(t('scan_first'));
-                return;
-            }
-
-            fetch('/api/generate-reports', {method: 'POST'})
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        alert(t('reports_generated'));
-                    } else {
-                        alert(t('report_error') + ': ' + data.error);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function showEmailModal() {
-            if (devices.length === 0) {
-                alert(t('scan_first'));
-                return;
-            }
-            new bootstrap.Modal(document.getElementById('emailModal')).show();
-        }
-
-        function sendEmail() {
-            const toEmail = document.getElementById('emailTo').value;
-            const reportType = document.getElementById('reportType').value;
-            const smtpServer = document.getElementById('smtpServer').value;
-            const smtpPort = document.getElementById('smtpPort').value;
-            const smtpUser = document.getElementById('smtpUser').value;
-            const smtpPass = document.getElementById('smtpPass').value;
-
-            if (!toEmail || !smtpServer || !smtpUser || !smtpPass) {
-                alert(t('fill_all_fields'));
-                return;
-            }
-
-            const smtpConfig = {
-                server: smtpServer,
-                port: parseInt(smtpPort),
-                username: smtpUser,
-                password: smtpPass
-            };
-
-            fetch('/api/send-email', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    to_email: toEmail,
-                    report_type: reportType,
-                    smtp_config: smtpConfig
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    alert(t('email_sent_success'));
-                    bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
-                } else {
-                    alert(t('email_sent_error') + ': ' + data.error);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        // Mobil özellikleri başlat
-        function initMobileFeatures() {
-            // Touch olayları için optimizasyon
-            if ('ontouchstart' in window) {
-                document.body.classList.add('touch-device');
-            }
-            
-            // Ekran boyutu değişikliklerini dinle
-            window.addEventListener('resize', handleResize);
-            handleResize();
-            
-            // Mobil menü kapatma olayları
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.sidebar') || e.target.closest('.mobile-menu-toggle')) {
-                    return;
-                }
-                if (window.innerWidth <= 768) {
-                    closeMobileMenu();
-                }
-            });
-        }
-
-        // Ekran boyutu değişikliklerini yönet
-        function handleResize() {
-            const isMobile = window.innerWidth <= 768;
-            const mobileStats = document.getElementById('mobileStats');
-            const mobileQuickActions = document.getElementById('mobileQuickActions');
-            
-            if (isMobile) {
-                // Mobil görünümde istatistikleri ve hızlı eylemleri göster
-                if (devices.length > 0) {
-                    mobileStats.style.display = 'grid';
-                    mobileQuickActions.style.display = 'flex';
-                    updateMobileStats();
-                }
-            } else {
-                // Desktop görünümde gizle
-                mobileStats.style.display = 'none';
-                mobileQuickActions.style.display = 'none';
-                closeMobileMenu();
-            }
-        }
-
-        // Mobil menü toggle
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            const isOpen = sidebar.classList.contains('show');
-            
-            if (isOpen) {
-                closeMobileMenu();
-            } else {
-                openMobileMenu();
-            }
-        }
-
-        function openMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            
-            sidebar.classList.add('show');
-            overlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        // Mobil istatistikleri güncelle
-        function updateMobileStats() {
-            const mobileStats = document.getElementById('mobileStats');
-            
-            if (devices.length === 0) {
-                mobileStats.style.display = 'none';
-                return;
-            }
-
-            const deviceTypes = {};
-            const vendors = {};
-            let totalPorts = 0;
-
-            devices.forEach(device => {
-                deviceTypes[device.device_type] = (deviceTypes[device.device_type] || 0) + 1;
-                vendors[device.vendor] = (vendors[device.vendor] || 0) + 1;
-                if (device.open_ports) {
-                    totalPorts += device.open_ports.length;
-                }
-            });
-
-            mobileStats.innerHTML = `
-                <div class="stats-card">
-                    <div class="card-body p-2">
-                        <h6 class="mb-0">${devices.length} ${t('devices')}</h6>
-                    </div>
-                </div>
-                <div class="stats-card">
-                    <div class="card-body p-2">
-                        <h6 class="mb-0">${totalPorts} ${t('open_ports')}</h6>
-                    </div>
-                </div>
-            `;
-        }
-
-        let trafficInterval = null;
-        function showTrafficModal() {
-            new bootstrap.Modal(document.getElementById('trafficModal')).show();
-            fetchAndUpdateTraffic();
-            if (trafficInterval) clearInterval(trafficInterval);
-            trafficInterval = setInterval(fetchAndUpdateTraffic, 2000);
-        }
-        document.getElementById('trafficModal').addEventListener('hidden.bs.modal', function() {
-            if (trafficInterval) clearInterval(trafficInterval);
-        });
-
-        function fetchAndUpdateTraffic() {
-            fetch('/api/network-traffic', {
-                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    document.getElementById('trafficBytesSent').textContent = formatBytes(data.traffic.bytes_sent);
-                    document.getElementById('trafficBytesRecv').textContent = formatBytes(data.traffic.bytes_recv);
-                    document.getElementById('trafficPacketsSent').textContent = data.traffic.packets_sent;
-                    document.getElementById('trafficPacketsRecv').textContent = data.traffic.packets_recv;
-                    const tbody = document.getElementById('trafficConnections');
-                    if (data.connections.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" data-i18n="no_connections">${t('no_connections')}</td></tr>`;
-                    } else {
-                        tbody.innerHTML = data.connections.map(conn => `
-                            <tr>
-                                <td>${conn.laddr}</td>
-                                <td>${conn.raddr}</td>
-                                <td>${conn.status}</td>
-                                <td>${conn.pid || ''}</td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            });
-        }
-        function formatBytes(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            let kb = bytes / 1024;
-            if (kb < 1024) return kb.toFixed(1) + ' KB';
-            let mb = kb / 1024;
-            if (mb < 1024) return mb.toFixed(1) + ' MB';
-            let gb = mb / 1024;
-            return gb.toFixed(1) + ' GB';
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/static/service-worker.js');
-            });
-        }
-        
-        let anomalyDetectionInterval = null;
-        let anomalyList = [];
-        
-        function showAnomalyDetection() {
-            document.getElementById('anomalyModal').style.display = 'block';
-            applyTranslations();
-        }
-        
-        function closeAnomalyModal() {
-            document.getElementById('anomalyModal').style.display = 'none';
-            stopAnomalyDetection();
-        }
-        
-        function startAnomalyDetection() {
-            if (anomalyDetectionInterval) return;
-            
-            const statusDot = document.getElementById('anomalyStatus');
-            const statusText = document.getElementById('anomalyStatusText');
-            
-            statusDot.className = 'status-dot active';
-            statusText.textContent = t('detection_active') || 'Tespit Aktif';
-            
-            // İlk kontrolü hemen yap
-            checkAnomalies();
-            
-            // Her 5 saniyede bir kontrol et
-            anomalyDetectionInterval = setInterval(checkAnomalies, 5000);
-        }
-        
-        function stopAnomalyDetection() {
-            if (anomalyDetectionInterval) {
-                clearInterval(anomalyDetectionInterval);
-                anomalyDetectionInterval = null;
-            }
-            
-            const statusDot = document.getElementById('anomalyStatus');
-            const statusText = document.getElementById('anomalyStatusText');
-            
-            statusDot.className = 'status-dot';
-            statusText.textContent = t('detection_stopped') || 'Tespit Durduruldu';
-        }
-        
-        function checkAnomalies() {
-            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-            if (!token) {
-                console.error('Token bulunamadı');
-                return;
-            }
-            
-            fetch('/api/anomaly-detection', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    updateAnomalyDisplay(data);
-                    updateTrafficSummary(data.traffic, data.connections_count);
-                    
-                    // Yeni anomaliler varsa bildirim göster
-                    if (data.anomalies && data.anomalies.length > 0) {
-                        showAnomalyNotification(data.anomalies);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Anomali tespiti hatası:', error);
-            });
-        }
-        
-        function updateAnomalyDisplay(data) {
-            const anomalyListElement = document.getElementById('anomalyList');
-            
-            if (data.anomalies && data.anomalies.length > 0) {
-                // Yeni anomalileri listeye ekle
-                data.anomalies.forEach(anomaly => {
-                    anomaly.timestamp = new Date().toLocaleTimeString();
-                    anomalyList.unshift(anomaly);
-                });
-                
-                // Listeyi güncelle
-                anomalyListElement.innerHTML = '';
-                anomalyList.forEach(anomaly => {
-                    const anomalyItem = createAnomalyItem(anomaly);
-                    anomalyListElement.appendChild(anomalyItem);
-                });
-                
-                // Maksimum 20 anomali tut
-                if (anomalyList.length > 20) {
-                    anomalyList.splice(20);
-                }
-            }
-        }
-        
-        function createAnomalyItem(anomaly) {
-            const item = document.createElement('div');
-            item.className = `anomaly-item ${anomaly.severity}`;
-            
-            const icon = anomaly.severity === 'danger' ? 'fas fa-exclamation-circle' :
-                        anomaly.severity === 'warning' ? 'fas fa-exclamation-triangle' :
-                        'fas fa-info-circle';
-            
-            item.innerHTML = `
-                <div class="anomaly-header">
-                    <div class="anomaly-message">
-                        <i class="${icon}"></i> ${anomaly.message}
-                    </div>
-                    <div class="anomaly-time">${anomaly.timestamp}</div>
-                </div>
-                <div class="anomaly-details">${anomaly.details}</div>
-            `;
-            
-            return item;
-        }
-        
-        function updateTrafficSummary(traffic, connectionsCount) {
-            document.getElementById('anomalyBytesSent').textContent = formatBytes(traffic.bytes_sent);
-            document.getElementById('anomalyBytesRecv').textContent = formatBytes(traffic.bytes_recv);
-            document.getElementById('anomalyConnections').textContent = connectionsCount;
-        }
-        
-        function showAnomalyNotification(anomalies) {
-            // Tarayıcı bildirimi göster
-            if (Notification.permission === 'granted') {
-                anomalies.forEach(anomaly => {
-                    new Notification('IP Scanner - Anomali Tespit Edildi', {
-                        body: anomaly.message,
-                        icon: '/static/icons/icon-192x192.png'
-                    });
-                });
-            }
-            
-            // Toast bildirimi göster
-            anomalies.forEach(anomaly => {
-                showToast(anomaly.message, anomaly.severity);
-            });
-        }
-        
-        function showToast(message, type = 'info') {
-            // Basit toast bildirimi
-            const toast = document.createElement('div');
-            toast.className = `toast-notification ${type}`;
-            toast.innerHTML = `
-                <div class="toast-content">
-                    <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            // 3 saniye sonra kaldır
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-    </script>
+    
+    <!-- Professional JavaScript -->
+    <script src="/static/app.js"></script>
 </body>
+</html> 
 </html> 

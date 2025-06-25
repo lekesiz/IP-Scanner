@@ -212,6 +212,17 @@ class UserManagement:
             return None
         except jwt.InvalidTokenError:
             return None
+        except Exception as e:
+            print(f"Token verification error: {str(e)}")
+            return None
+    
+    def get_user_id_from_token(self, token):
+        """Token'dan user_id'yi al"""
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            return payload.get('user_id')
+        except:
+            return None
     
     def logout_user(self, token):
         """Kullanıcı çıkışı"""

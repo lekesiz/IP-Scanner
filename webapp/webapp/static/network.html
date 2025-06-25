@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ağ Haritası - IP Scanner V4.0</title>
+    <meta charset="utf-8">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { padding: 20px; border-bottom: 1px solid #eee; }
+        .header h1 { margin: 0; color: #333; }
+        .stats { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #eee; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; }
+        .stat-card h3 { margin: 0 0 10px 0; color: #555; font-size: 14px; }
+        .stat-card p { margin: 0; font-size: 24px; font-weight: bold; color: #333; }
+        #network-container { height: 600px; border: 1px solid #ddd; }
+        .legend { padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Ağ Haritası - IP Scanner V4.0</h1>
+            <p>Tarama Tarihi: 2025-06-25 16:40:16</p>
+        </div>
+        
+        <div class="stats">
+            <h2>📊 Ağ İstatistikleri</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Toplam Cihaz</h3>
+                    <p>24</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Cihaz Türleri</h3>
+                    <p>1</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Üreticiler</h3>
+                    <p>6</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Açık Portlar</h3>
+                    <p>7</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <h3>🎨 Cihaz Türleri:</h3>
+            <div class="legend-item"><div class="legend-color" style="background: #ff6b6b;"></div><span>Router</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #4ecdc4;"></div><span>Bilgisayar</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #45b7d1;"></div><span>Apple Cihazı</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #96ceb4;"></div><span>Android Cihazı</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #feca57;"></div><span>Huawei Cihazı</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #ff9ff3;"></div><span>Xiaomi Cihazı</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #54a0ff;"></div><span>Windows Cihazı</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: #c8d6e5;"></div><span>Bilinmeyen</span></div>
+        </div>
+        
+        <div id="network-container"></div>
+    </div>
+    
+    <script>
+        var nodes = new vis.DataSet([{"id": "192.168.1.1", "label": "192.168.1.1\nBilinmeyen Cihaz", "title": "IP: 192.168.1.1<br>MAC: bc:cf:4f:3d:92:6f<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 21, 22, 53", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.9", "label": "192.168.1.9\nBilinmeyen Cihaz", "title": "IP: 192.168.1.9<br>MAC: cc:4f:5c:20:a8:67<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 80, 22, 53", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.13", "label": "192.168.1.13\nBilinmeyen Cihaz", "title": "IP: 192.168.1.13<br>MAC: 38:ef:e3:97:6b:6e<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.11", "label": "192.168.1.11\nBilinmeyen Cihaz", "title": "IP: 192.168.1.11<br>MAC: ac:1f:6b:ee:17:ed<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 80, 22, 443", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.30", "label": "192.168.1.30\nBilinmeyen Cihaz", "title": "IP: 192.168.1.30<br>MAC: 78:8b:2a:b0:cb:cb<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.7", "label": "192.168.1.7\nBilinmeyen Cihaz\nFREEBOX SAS", "title": "IP: 192.168.1.7<br>MAC: 70:fc:8f:61:1b:49<br>\u00dcretici: FREEBOX SAS<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 80, 8080", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.33", "label": "192.168.1.33\nBilinmeyen Cihaz", "title": "IP: 192.168.1.33<br>MAC: e4:aa:ec:b0:6f:9b<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.40", "label": "192.168.1.40\nBilinmeyen Cihaz", "title": "IP: 192.168.1.40<br>MAC: 48:25:67:5b:e7:51<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 443", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.6", "label": "192.168.1.6\nBilinmeyen Cihaz", "title": "IP: 192.168.1.6<br>MAC: f4:91:1e:d1:fe:b1<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.19", "label": "192.168.1.19\nBilinmeyen Cihaz", "title": "IP: 192.168.1.19<br>MAC: f6:66:4c:2b:6f:8e<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.31", "label": "192.168.1.31\nBilinmeyen Cihaz", "title": "IP: 192.168.1.31<br>MAC: 3a:a2:fa:77:e1:60<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.54", "label": "192.168.1.54\nBilinmeyen Cihaz", "title": "IP: 192.168.1.54<br>MAC: a2:c4:98:5a:d2:c6<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.72", "label": "192.168.1.72\nBilinmeyen Cihaz", "title": "IP: 192.168.1.72<br>MAC: 8a:84:7b:47:75:61<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.81", "label": "192.168.1.81\nBilinmeyen Cihaz", "title": "IP: 192.168.1.81<br>MAC: f2:57:e0:87:a7:77<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 8443", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.87", "label": "192.168.1.87\nBilinmeyen Cihaz\nRaspberry Pi (Trading) Ltd", "title": "IP: 192.168.1.87<br>MAC: 2c:cf:67:57:a1:c8<br>\u00dcretici: Raspberry Pi (Trading) Ltd<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.80", "label": "192.168.1.80\nBilinmeyen Cihaz", "title": "IP: 192.168.1.80<br>MAC: 50:2c:c6:3b:bb:7e<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.75", "label": "192.168.1.75\nBilinmeyen Cihaz", "title": "IP: 192.168.1.75<br>MAC: 34:27:92:97:4a:71<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 80, 8080", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.113", "label": "192.168.1.113\nBilinmeyen Cihaz", "title": "IP: 192.168.1.113<br>MAC: 18:c2:3c:54:cc:38<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.103", "label": "192.168.1.103\nBilinmeyen Cihaz", "title": "IP: 192.168.1.103<br>MAC: 52:6a:4e:4e:36:6c<br>\u00dcretici: Bilinmiyor<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.122", "label": "192.168.1.122\nBilinmeyen Cihaz\n INGENICO TERMINALS SAS", "title": "IP: 192.168.1.122<br>MAC: 38:ef:e3:86:1e:86<br>\u00dcretici:  INGENICO TERMINALS SAS<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.148", "label": "192.168.1.148\nBilinmeyen Cihaz\nTP-LINK TECHNOLOGIES CO.,LTD.", "title": "IP: 192.168.1.148<br>MAC: b0:95:75:48:de:f4<br>\u00dcretici: TP-LINK TECHNOLOGIES CO.,LTD.<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 22, 80, 443", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.167", "label": "192.168.1.167\nBilinmeyen Cihaz\nShanghai High-Flying Electronics  Technology Co., Ltd", "title": "IP: 192.168.1.167<br>MAC: d4:27:87:14:f8:c2<br>\u00dcretici: Shanghai High-Flying Electronics  Technology Co., Ltd<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: 80", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.220", "label": "192.168.1.220\nBilinmeyen Cihaz\nSuper Micro Computer, Inc.", "title": "IP: 192.168.1.220<br>MAC: ac:1f:6b:ee:1a:d2<br>\u00dcretici: Super Micro Computer, Inc.<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}, {"id": "192.168.1.249", "label": "192.168.1.249\nBilinmeyen Cihaz\nSuper Micro Computer, Inc.", "title": "IP: 192.168.1.249<br>MAC: ac:1f:6b:ee:1a:d3<br>\u00dcretici: Super Micro Computer, Inc.<br>T\u00fcr: Bilinmeyen Cihaz<br>A\u00e7\u0131k Portlar: Yok", "color": "#c8d6e5", "size": 20}]);
+        var edges = new vis.DataSet([{"from": "192.168.1.1", "to": "192.168.1.9", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.9"}, {"from": "192.168.1.1", "to": "192.168.1.13", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.13"}, {"from": "192.168.1.1", "to": "192.168.1.11", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.11"}, {"from": "192.168.1.1", "to": "192.168.1.30", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.30"}, {"from": "192.168.1.1", "to": "192.168.1.7", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.7"}, {"from": "192.168.1.1", "to": "192.168.1.33", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.33"}, {"from": "192.168.1.1", "to": "192.168.1.40", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.40"}, {"from": "192.168.1.1", "to": "192.168.1.6", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.6"}, {"from": "192.168.1.1", "to": "192.168.1.19", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.19"}, {"from": "192.168.1.1", "to": "192.168.1.31", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.31"}, {"from": "192.168.1.1", "to": "192.168.1.54", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.54"}, {"from": "192.168.1.1", "to": "192.168.1.72", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.72"}, {"from": "192.168.1.1", "to": "192.168.1.81", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.81"}, {"from": "192.168.1.1", "to": "192.168.1.87", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.87"}, {"from": "192.168.1.1", "to": "192.168.1.80", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.80"}, {"from": "192.168.1.1", "to": "192.168.1.75", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.75"}, {"from": "192.168.1.1", "to": "192.168.1.113", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.113"}, {"from": "192.168.1.1", "to": "192.168.1.103", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.103"}, {"from": "192.168.1.1", "to": "192.168.1.122", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.122"}, {"from": "192.168.1.1", "to": "192.168.1.148", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.148"}, {"from": "192.168.1.1", "to": "192.168.1.167", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.167"}, {"from": "192.168.1.1", "to": "192.168.1.220", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.220"}, {"from": "192.168.1.1", "to": "192.168.1.249", "width": 2, "color": "#4ecdc4", "title": "Hub ba\u011flant\u0131s\u0131: 192.168.1.1 \u2194 192.168.1.249"}]);
+        
+        var container = document.getElementById('network-container');
+        var data = { nodes: nodes, edges: edges };
+        var options = {
+            nodes: {
+                shape: 'dot',
+                size: 20,
+                font: {
+                    size: 12,
+                    face: 'Arial'
+                },
+                borderWidth: 2,
+                shadow: true
+            },
+            edges: {
+                width: 2,
+                shadow: true,
+                smooth: {
+                    type: 'continuous'
+                }
+            },
+            physics: {
+                stabilization: false,
+                barnesHut: {
+                    gravitationalConstant: -80000,
+                    springConstant: 0.001,
+                    springLength: 200
+                }
+            },
+            interaction: {
+                navigationButtons: true,
+                keyboard: true
+            }
+        };
+        
+        var network = new vis.Network(container, data, options);
+    </script>
+</body>
+</html>

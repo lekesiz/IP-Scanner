@@ -11,6 +11,7 @@ from advanced_scanner import create_advanced_scanner
 from user_management import user_manager
 from datetime import datetime
 import psutil
+from device_detector import device_detector
 
 app = Flask(__name__)
 scanner = None
@@ -18,12 +19,28 @@ scan_results = []
 
 @app.route('/')
 def index():
+    # Cookie'den token kontrolü
+    token = request.cookies.get('auth_token')
+    if not token:
+        return redirect('/login')
+    
+    user = user_manager.verify_token(token)
+    if not user:
+        return redirect('/login')
+    
     # Otomatik dil algılama
     lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
     return render_template('index.html', lang=lang)
 
 @app.route('/login')
 def login():
+    # Eğer kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
+    token = request.headers.get('Authorization')
+    if token and token.startswith('Bearer '):
+        token = token[7:]
+        if user_manager.validate_token(token):
+            return redirect('/')
+    
     return render_template('login.html')
 
 # Kullanıcı yönetimi endpoint'leri
@@ -59,7 +76,10 @@ def api_login():
     result = user_manager.login_user(username, password)
     
     if result['success']:
-        return jsonify(result)
+        response = jsonify(result)
+        # Token'ı cookie olarak da set et
+        response.set_cookie('auth_token', result['token'], max_age=8*60*60, httponly=True, samesite='Lax')
+        return response
     else:
         return jsonify(result), 401
 
@@ -72,7 +92,10 @@ def api_logout():
         token = token[7:]
     
     result = user_manager.logout_user(token)
-    return jsonify(result)
+    response = jsonify(result)
+    # Cookie'yi temizle
+    response.delete_cookie('auth_token')
+    return response
 
 @app.route('/api/auth/profile', methods=['GET'])
 @user_manager.require_auth
@@ -82,7 +105,7 @@ def api_profile():
     profile = user_manager.get_user_profile(user_id)
     
     if profile:
-        return jsonify({'status': 'ok', 'profile': profile})
+        return jsonify({'status': 'ok', 'user': profile})
     else:
         return jsonify({'error': 'Profil bulunamadı'}), 404
 
@@ -120,104 +143,150 @@ def api_settings():
 @app.route('/api/scan', methods=['POST'])
 @user_manager.require_auth
 def api_scan():
-    """Temel tarama endpoint'i"""
     global scan_results
+    user_id = user_manager.get_user_id_from_token(request.headers.get('Authorization', '').replace('Bearer ', ''))
     
-    data = request.json
+    data = request.get_json()
     ip_range = data.get('ip_range', '192.168.1.0/24')
-    port_scan = request.json.get('port_scan', True)
     
-    # User ID'yi thread dışında al
-    user_id = request.current_user['user_id']
-
     def do_scan():
         global scan_results
-        scanner = IPScannerV2()
-        scanner.port_scan_var.set(port_scan)
-        results = scanner.scan_network(ip_range)
-        scan_results = results
-        
-        # Aktivite kaydet - user_id'yi parametre olarak geç
-        user_manager.log_activity(
-            user_id,
-            'scan',
-            f'Temel tarama yapıldı: {ip_range}'
-        )
+        try:
+            # Yeni cihaz tespit sistemi ile tarama
+            from device_detector import device_detector
+            
+            # Temel ARP taraması
+            scanner = IPScannerV2()
+            basic_results = scanner.scan_network(ip_range)
+            
+            # Gelişmiş analiz için device_detector kullan
+            enhanced_results = []
+            for device in basic_results:
+                # Zaten analiz edilmiş, sadece formatla
+                enhanced_device = {
+                    'ip': device['ip'],
+                    'mac': device['mac'],
+                    'vendor': device['vendor'],
+                    'device_type': device['device_type'],
+                    'confidence': device.get('confidence', 0),
+                    'open_ports': device.get('open_ports', []),
+                    'status': 'Aktif',
+                    'last_seen': datetime.now().isoformat(),
+                    'hostname': device.get('hostname'),
+                    'services': device.get('services', [])
+                }
+                enhanced_results.append(enhanced_device)
+            
+            scan_results = enhanced_results
+            
+        except Exception as e:
+            print(f"Scan error: {str(e)}")
+            scan_results = []
 
     t = threading.Thread(target=do_scan)
     t.start()
     t.join()
-    return jsonify({'status': 'ok', 'devices': scan_results})
+    
+    # Aktivite kaydet - thread dışında
+    try:
+        user_manager.log_activity(
+            user_id,
+            'scan',
+            f'Tarama yapıldı: {ip_range} ({len(scan_results)} cihaz)'
+        )
+    except Exception as e:
+        print(f"Aktivite kaydetme hatası: {str(e)}")
+    
+    return jsonify({
+        'success': True,
+        'devices': scan_results,
+        'total': len(scan_results)
+    })
 
 @app.route('/api/advanced-scan', methods=['POST'])
 @user_manager.require_auth
 def api_advanced_scan():
-    """Gelişmiş tarama endpoint'i"""
     global scan_results
+    user_id = user_manager.get_user_id_from_token(request.headers.get('Authorization', '').replace('Bearer ', ''))
     
-    data = request.json
+    data = request.get_json()
     ip_range = data.get('ip_range', '192.168.1.0/24')
     enable_nmap = data.get('enable_nmap', True)
     enable_dhcp = data.get('enable_dhcp', True)
     enable_netbios = data.get('enable_netbios', True)
     enable_mdns = data.get('enable_mdns', True)
     
-    # User ID'yi thread dışında al
-    user_id = request.current_user['user_id']
-
     def do_advanced_scan():
         global scan_results
         try:
-            advanced_scanner = create_advanced_scanner()
-            results = advanced_scanner.comprehensive_scan(
-                ip_range=ip_range,
-                enable_nmap=enable_nmap,
-                enable_dhcp=enable_dhcp,
-                enable_netbios=enable_netbios,
-                enable_mdns=enable_mdns
-            )
+            # Temel tarama
+            scanner = IPScannerV2()
+            basic_results = scanner.scan_network(ip_range)
             
-            # Sonuçları standart formata dönüştür
-            formatted_results = []
-            for device in results:
-                # Vendor bilgisini al (basit tarama ile)
-                basic_scanner = IPScannerV2()
-                vendor = basic_scanner.get_vendor(device['mac'])
-                
-                # Gelişmiş cihaz türü tespiti
-                device_type_info = advanced_scanner.detect_device_type_advanced(
-                    device['ip'], 
-                    device['mac'], 
-                    vendor,
-                    device.get('os_info'),
-                    device.get('services')
-                )
-                
-                formatted_device = {
-                    'ip': device['ip'],
-                    'mac': device['mac'],
-                    'vendor': vendor,
-                    'device_type': device_type_info['device_type'],
-                    'confidence': device_type_info['confidence'],
-                    'open_ports': [service['port'] for service in device.get('services', [])],
-                    'status': 'Aktif',
-                    'last_seen': datetime.now().isoformat(),
-                    'os_info': device.get('os_info'),
-                    'services': device.get('services'),
-                    'discovery_methods': device.get('discovery_methods', []),
-                    'additional_info': device.get('additional_info', {})
-                }
-                
-                formatted_results.append(formatted_device)
-            
-            scan_results = formatted_results
-            
-            # Aktivite kaydet - user_id'yi parametre olarak geç
-            user_manager.log_activity(
-                user_id,
-                'scan',
-                f'Gelişmiş tarama yapıldı: {ip_range} ({len(formatted_results)} cihaz)'
-            )
+            # Gelişmiş tarama (nmap vb.)
+            if enable_nmap:
+                try:
+                    advanced_scanner = AdvancedScanner()
+                    advanced_results = advanced_scanner.comprehensive_scan(
+                        ip_range, enable_nmap, enable_dhcp, enable_netbios, enable_mdns
+                    )
+                    
+                    # Sonuçları birleştir
+                    combined_results = []
+                    basic_devices = {device['ip']: device for device in basic_results}
+                    
+                    for advanced_device in advanced_results:
+                        ip = advanced_device['ip']
+                        if ip in basic_devices:
+                            # Temel bilgileri koru, gelişmiş bilgileri ekle
+                            device = basic_devices[ip].copy()
+                            device.update({
+                                'os_info': advanced_device.get('os_info'),
+                                'services': advanced_device.get('services', []),
+                                'discovery_methods': advanced_device.get('discovery_methods', []),
+                                'additional_info': advanced_device.get('additional_info', {})
+                            })
+                            
+                            # Cihaz türünü yeniden tespit et
+                            device_type, confidence = device_detector.detect_device_type(
+                                device['mac'], 
+                                device['vendor'],
+                                device.get('open_ports', []),
+                                device.get('services', [])
+                            )
+                            device['device_type'] = device_type
+                            device['confidence'] = confidence
+                            
+                            combined_results.append(device)
+                        else:
+                            # Sadece gelişmiş taramada bulunan cihazlar
+                            vendor = device_detector.get_vendor_from_api(advanced_device['mac'])
+                            device_type, confidence = device_detector.detect_device_type(
+                                advanced_device['mac'], vendor
+                            )
+                            
+                            combined_results.append({
+                                'ip': advanced_device['ip'],
+                                'mac': advanced_device['mac'],
+                                'vendor': vendor,
+                                'device_type': device_type,
+                                'confidence': confidence,
+                                'open_ports': [service['port'] for service in advanced_device.get('services', [])],
+                                'status': 'Aktif',
+                                'last_seen': datetime.now().isoformat(),
+                                'os_info': advanced_device.get('os_info'),
+                                'services': advanced_device.get('services', []),
+                                'discovery_methods': advanced_device.get('discovery_methods', []),
+                                'additional_info': advanced_device.get('additional_info', {})
+                            })
+                    
+                    scan_results = combined_results
+                    
+                except Exception as e:
+                    print(f"Advanced scan error: {str(e)}")
+                    scan_results = basic_results
+            else:
+                scan_results = basic_results
             
         except Exception as e:
             print(f"Advanced scan error: {str(e)}")
@@ -227,7 +296,21 @@ def api_advanced_scan():
     t.start()
     t.join()
     
-    return jsonify({'status': 'ok', 'devices': scan_results})
+    # Aktivite kaydet - thread dışında
+    try:
+        user_manager.log_activity(
+            user_id,
+            'scan',
+            f'Gelişmiş tarama yapıldı: {ip_range} ({len(scan_results)} cihaz)'
+        )
+    except Exception as e:
+        print(f"Aktivite kaydetme hatası: {str(e)}")
+    
+    return jsonify({
+        'success': True,
+        'devices': scan_results,
+        'total': len(scan_results)
+    })
 
 @app.route('/api/devices', methods=['GET'])
 @user_manager.require_auth
@@ -248,11 +331,19 @@ def api_device_details(ip):
 @user_manager.require_auth
 def api_network_map():
     """Ağ haritası oluşturur ve HTML dosyasını döner"""
-    if not scan_results:
-        return jsonify({'error': 'Önce tarama yapın'}), 400
-    
     try:
+        print(f"Network-map endpoint çağrıldı. Scan results: {len(scan_results) if scan_results else 0}")
+        
+        if not scan_results:
+            return jsonify({'error': 'Önce tarama yapın'}), 400
+        
+        # DEBUG: İlk birkaç cihazın verilerini göster
+        print("DEBUG: İlk 3 scan result:")
+        for i, device in enumerate(scan_results[:3]):
+            print(f"  Scan Result {i+1}: {device}")
+        
         # Ağ görselleştirmesi oluştur
+        from network_visualizer import create_network_visualization
         result = create_network_visualization(scan_results)
         
         if result['html_path']:
@@ -265,6 +356,9 @@ def api_network_map():
             return jsonify({'error': 'Ağ haritası oluşturulamadı'}), 500
             
     except Exception as e:
+        import traceback
+        print(f"Network-map endpoint hatası: {e}")
+        print(traceback.format_exc())
         return jsonify({'error': f'Ağ haritası hatası: {str(e)}'}), 500
 
 @app.route('/api/network-stats', methods=['GET'])
@@ -508,6 +602,9 @@ def api_admin_activities():
 def api_network_traffic():
     """Gerçek zamanlı ağ trafiği ve bağlantı bilgisi döner"""
     try:
+        # Debug: Log the current user
+        print(f"Network traffic request from user: {request.current_user['username']}")
+        
         # Ağ arayüzü istatistikleri
         net_io = psutil.net_io_counters()
         traffic = {
@@ -516,19 +613,40 @@ def api_network_traffic():
             'packets_sent': net_io.packets_sent,
             'packets_recv': net_io.packets_recv
         }
+        
         # Aktif bağlantılar
         connections = []
-        for conn in psutil.net_connections(kind='inet'):
-            if conn.status == psutil.CONN_ESTABLISHED:
-                connections.append({
-                    'laddr': f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else '',
-                    'raddr': f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else '',
-                    'status': conn.status,
-                    'pid': conn.pid
-                })
+        try:
+            for conn in psutil.net_connections(kind='inet'):
+                if conn.status == psutil.CONN_ESTABLISHED:
+                    connections.append({
+                        'laddr': f"{conn.laddr.ip}:{conn.laddr.port}" if conn.laddr else '',
+                        'raddr': f"{conn.raddr.ip}:{conn.raddr.port}" if conn.raddr else '',
+                        'status': conn.status,
+                        'pid': conn.pid
+                    })
+        except Exception as conn_error:
+            print(f"Connection error: {conn_error}")
+            # Return empty connections if there's an error
+            connections = []
+        
+        print(f"Traffic data: {traffic}, Connections: {len(connections)}")
         return jsonify({'status': 'ok', 'traffic': traffic, 'connections': connections})
+        
     except Exception as e:
+        print(f"Network traffic error: {e}")
         return jsonify({'status': 'error', 'error': str(e)})
+
+# Debug endpoint to test authentication
+@app.route('/api/debug/auth', methods=['GET'])
+@user_manager.require_auth
+def api_debug_auth():
+    """Debug endpoint to test authentication"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Authentication working',
+        'user': request.current_user
+    })
 
 # Anomali tespiti için basit fonksiyon
 def detect_anomalies(traffic_data, connections):

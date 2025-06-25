@@ -10,11 +10,16 @@ import re
 import subprocess
 import platform
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import sys
+import os
+
+# Yeni cihaz tespit modülünü import et
+sys.path.append(os.path.join(os.path.dirname(__file__), 'webapp'))
+from device_detector import device_detector
 
 class IPScannerV2:
     def __init__(self):
         # Cache ve durum değişkenleri
-        self.mac_vendor_cache = {}
         self.scanning = False
         self.monitoring = False
         self.monitor_event = Event()
@@ -24,15 +29,6 @@ class IPScannerV2:
         # Yaygın portlar
         self.common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 8080, 8443]
         
-        # MAC prefix'leri için cihaz türü tespiti
-        self.device_patterns = {
-            'router': ['00:1A:11', '00:1B:63', '00:1C:C0', '00:1D:7D', '00:1E:40', '00:1F:3A'],
-            'apple': ['00:1C:B3', '00:1E:C2', '00:23:12', '00:23:76', '00:25:00', '00:26:08'],
-            'samsung': ['00:16:32', '00:19:C5', '00:1B:98', '00:1C:62', '00:1D:25', '00:1E:7D'],
-            'huawei': ['00:1E:10', '00:25:9E', '00:26:18', '00:26:4A', '00:27:19', '00:28:6F'],
-            'xiaomi': ['00:1A:11', '00:1B:63', '00:1C:C0', '00:1D:7D', '00:1E:40', '00:1F:3A']
-        }
-        
         # Web uygulaması için port_scan_var
         self.port_scan_var = type('obj', (object,), {
             'get': lambda self: True,
@@ -40,55 +36,13 @@ class IPScannerV2:
         })()
         
     def get_vendor(self, mac):
-        """MAC adresinden üretici bilgisi alır"""
-        mac_prefix = mac.upper().replace(":", "")[:6]
-        if mac_prefix in self.mac_vendor_cache:
-            return self.mac_vendor_cache[mac_prefix]
-        
-        try:
-            url = f"https://api.macvendors.com/{mac}"
-            response = requests.get(url, timeout=3)
-            if response.status_code == 200:
-                vendor = response.text
-                self.mac_vendor_cache[mac_prefix] = vendor
-                return vendor
-        except:
-            pass
-        return "Bilinmiyor"
+        """MAC adresinden üretici bilgisi alır - Yeni detector kullanır"""
+        return device_detector.get_vendor_from_api(mac)
     
     def detect_device_type(self, mac, vendor):
-        """MAC adresi ve üretici bilgisinden cihaz türünü tespit eder"""
-        mac_upper = mac.upper()
-        
-        # MAC prefix kontrolü
-        for device_type, prefixes in self.device_patterns.items():
-            for prefix in prefixes:
-                if mac_upper.startswith(prefix):
-                    if device_type == 'router':
-                        return "Router"
-                    elif device_type == 'apple':
-                        return "Apple Cihazı"
-                    elif device_type == 'samsung':
-                        return "Samsung Cihazı"
-                    elif device_type == 'huawei':
-                        return "Huawei Cihazı"
-                    elif device_type == 'xiaomi':
-                        return "Xiaomi Cihazı"
-        
-        # Vendor kontrolü
-        vendor_lower = vendor.lower()
-        if any(keyword in vendor_lower for keyword in ['router', 'gateway', 'modem']):
-            return "Router"
-        elif any(keyword in vendor_lower for keyword in ['apple', 'mac']):
-            return "Apple Cihazı"
-        elif any(keyword in vendor_lower for keyword in ['samsung', 'lg']):
-            return "Android Cihazı"
-        elif any(keyword in vendor_lower for keyword in ['huawei', 'xiaomi', 'oppo', 'vivo']):
-            return "Android Cihazı"
-        elif any(keyword in vendor_lower for keyword in ['microsoft', 'dell', 'hp', 'lenovo', 'asus']):
-            return "Bilgisayar"
-        else:
-            return "Bilinmeyen Cihaz"
+        """MAC adresi ve üretici bilgisinden cihaz türünü tespit eder - Yeni detector kullanır"""
+        device_type, confidence = device_detector.detect_device_type(mac, vendor)
+        return device_type
     
     def port_scan(self, ip, ports=None):
         """Belirtilen IP adresinde port taraması yapar"""
@@ -130,19 +84,21 @@ class IPScannerV2:
                 
                 devices = []
                 for sent, received in result:
-                    device = {
-                        'ip': received.psrc,
-                        'mac': received.hwsrc,
-                        'vendor': self.get_vendor(received.hwsrc),
-                        'device_type': self.detect_device_type(received.hwsrc, self.get_vendor(received.hwsrc)),
-                        'open_ports': [],
-                        'status': 'Aktif',
-                        'last_seen': datetime.now().isoformat()
-                    }
+                    # Yeni cihaz tespit sistemi ile analiz et
+                    device_info = device_detector.analyze_device(received.psrc, received.hwsrc)
                     
-                    # Port taraması
-                    if self.port_scan_var.get():
-                        device['open_ports'] = self.port_scan(device['ip'])
+                    device = {
+                        'ip': device_info.ip,
+                        'mac': device_info.mac,
+                        'vendor': device_info.vendor,
+                        'device_type': device_info.device_type,
+                        'confidence': device_info.confidence,
+                        'open_ports': device_info.open_ports,
+                        'status': 'Aktif',
+                        'last_seen': datetime.now().isoformat(),
+                        'hostname': device_info.hostname,
+                        'services': device_info.services
+                    }
                     
                     devices.append(device)
                 
@@ -156,9 +112,9 @@ class IPScannerV2:
         except Exception as e:
             print(f"Tarama hatası: {str(e)}")
             return self.scan_network_alternative(ip_range)
-    
+
     def scan_network_alternative(self, ip_range):
-        """Alternatif tarama yöntemi - ping ve arp kullanır"""
+        """Alternatif tarama yöntemi (ping/arp tabanlı)"""
         try:
             print("Alternatif tarama yöntemi kullanılıyor...")
             
@@ -167,15 +123,16 @@ class IPScannerV2:
                 base_ip = ip_range.split('/')[0]
                 prefix = int(ip_range.split('/')[1])
                 
-                if prefix == 24:  # /24 ağı
+                if prefix == 24:
+                    # 192.168.1.0/24 -> 192.168.1.1-254
                     base_parts = base_ip.split('.')
                     base_network = f"{base_parts[0]}.{base_parts[1]}.{base_parts[2]}"
                     
                     devices = []
                     
-                    # Ping ile cihazları bul
-                    def ping_host(host_num):
+                    def scan_host(host_num):
                         ip = f"{base_network}.{host_num}"
+                        
                         try:
                             if platform.system() == "Windows":
                                 result = subprocess.run(['ping', '-n', '1', '-w', '1000', ip], 
@@ -190,19 +147,22 @@ class IPScannerV2:
                                 mac = self.get_mac_address(ip)
                                 if mac:
                                     print(f"MAC bulundu: {ip} -> {mac}")
-                                    device = {
-                                        'ip': ip,
-                                        'mac': mac,
-                                        'vendor': self.get_vendor(mac),
-                                        'device_type': self.detect_device_type(mac, self.get_vendor(mac)),
-                                        'open_ports': [],
-                                        'status': 'Aktif',
-                                        'last_seen': datetime.now().isoformat()
-                                    }
                                     
-                                    # Port taraması
-                                    if self.port_scan_var.get():
-                                        device['open_ports'] = self.port_scan(device['ip'])
+                                    # Yeni cihaz tespit sistemi ile analiz et
+                                    device_info = device_detector.analyze_device(ip, mac)
+                                    
+                                    device = {
+                                        'ip': device_info.ip,
+                                        'mac': device_info.mac,
+                                        'vendor': device_info.vendor,
+                                        'device_type': device_info.device_type,
+                                        'confidence': device_info.confidence,
+                                        'open_ports': device_info.open_ports,
+                                        'status': 'Aktif',
+                                        'last_seen': datetime.now().isoformat(),
+                                        'hostname': device_info.hostname,
+                                        'services': device_info.services
+                                    }
                                     
                                     return device
                         except Exception as e:
@@ -210,10 +170,10 @@ class IPScannerV2:
                             pass
                         return None
                     
-                    # Paralel ping taraması
+                    # Paralel tarama
                     with ThreadPoolExecutor(max_workers=20) as executor:
-                        futures = [executor.submit(ping_host, i) for i in range(1, 255)]
-                        for future in as_completed(futures):
+                        future_to_host = {executor.submit(scan_host, i): i for i in range(1, 255)}
+                        for future in as_completed(future_to_host):
                             result = future.result()
                             if result:
                                 devices.append(result)
@@ -221,29 +181,104 @@ class IPScannerV2:
                     self.devices = devices
                     return devices
                     
-            return []
-            
+            else:
+                print("Geçersiz IP aralığı formatı")
+                return []
+                
         except Exception as e:
             print(f"Alternatif tarama hatası: {str(e)}")
             return []
-    
+
     def get_mac_address(self, ip):
         """IP adresinden MAC adresi alır"""
         try:
             if platform.system() == "Windows":
-                result = subprocess.run(['arp', '-a', ip], capture_output=True, text=True)
+                # Windows için arp -a komutu
+                result = subprocess.run(['arp', '-a', ip], capture_output=True, text=True, timeout=3)
+                if result.returncode == 0:
+                    # MAC adresini regex ile bul
+                    mac_pattern = r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+                    match = re.search(mac_pattern, result.stdout)
+                    if match:
+                        return match.group(0)
             else:
-                result = subprocess.run(['arp', '-n', ip], capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                # MAC adresini regex ile bul
-                mac_pattern = r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
-                match = re.search(mac_pattern, result.stdout)
-                if match:
-                    return match.group(0)
-        except:
-            pass
+                # Linux/Mac için arp komutu
+                result = subprocess.run(['arp', '-n', ip], capture_output=True, text=True, timeout=3)
+                if result.returncode == 0:
+                    # MAC adresini regex ile bul
+                    mac_pattern = r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+                    match = re.search(mac_pattern, result.stdout)
+                    if match:
+                        return match.group(0)
+        except Exception as e:
+            print(f"MAC adresi alma hatası {ip}: {str(e)}")
+        
         return None
 
-# Web uygulaması için uyumlu hale getirildi
-# Tkinter bağımlılıkları kaldırıldı 
+    def get_mac_address_alternative(self, ip):
+        """Alternatif MAC adresi alma yöntemi"""
+        try:
+            # getmac komutu (Windows)
+            if platform.system() == "Windows":
+                result = subprocess.run(['getmac', '/fo', 'csv', '/nh'], capture_output=True, text=True, timeout=3)
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split('\n')
+                    for line in lines:
+                        if ip in line:
+                            parts = line.split(',')
+                            if len(parts) >= 2:
+                                mac = parts[1].strip().strip('"')
+                                if re.match(r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})', mac):
+                                    return mac
+        except:
+            pass
+        
+        return self.get_mac_address(ip)
+
+    def save_results(self, filename=None):
+        """Tarama sonuçlarını kaydeder"""
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"scan_results_{timestamp}.json"
+        
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(self.devices, f, ensure_ascii=False, indent=2)
+            print(f"Sonuçlar kaydedildi: {filename}")
+        except Exception as e:
+            print(f"Kaydetme hatası: {str(e)}")
+
+    def export_csv(self, filename=None):
+        """Sonuçları CSV formatında dışa aktarır"""
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"scan_results_{timestamp}.csv"
+        
+        try:
+            with open(filename, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['IP', 'MAC', 'Vendor', 'Device Type', 'Confidence', 'Open Ports', 'Status', 'Last Seen'])
+                
+                for device in self.devices:
+                    writer.writerow([
+                        device['ip'],
+                        device['mac'],
+                        device['vendor'],
+                        device['device_type'],
+                        device.get('confidence', 0),
+                        ', '.join(map(str, device.get('open_ports', []))),
+                        device['status'],
+                        device['last_seen']
+                    ])
+            print(f"CSV dosyası oluşturuldu: {filename}")
+        except Exception as e:
+            print(f"CSV export hatası: {str(e)}")
+
+# Test fonksiyonu
+if __name__ == "__main__":
+    scanner = IPScannerV2()
+    results = scanner.scan_network("192.168.1.0/24")
+    print(f"Bulunan cihaz sayısı: {len(results)}")
+    
+    for device in results:
+        print(f"IP: {device['ip']}, MAC: {device['mac']}, Vendor: {device['vendor']}, Type: {device['device_type']}, Confidence: {device.get('confidence', 0)}%") 
