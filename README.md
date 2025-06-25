@@ -1,8 +1,17 @@
-# IP Scanner V3.3 - Gelişmiş Ağ Tarayıcı
+# IP Scanner V4.0 - Gelişmiş Ağ Tarayıcı
 
 Profesyonel ağ tarama ve cihaz tespit aracı. Desktop ve web arayüzleri ile kapsamlı ağ analizi yapabilir.
 
 ## 🚀 Özellikler
+
+### V4.0 - Tam Entegrasyon ve Güvenlik
+- **Nmap Tam Entegrasyonu**: OS fingerprinting ve servis tespiti (root yetkisi olmadan)
+- **Alternatif Tarama Yöntemleri**: Scapy olmadan ping/arp tabanlı tarama
+- **Güvenli Çalışma**: Root yetkisi gerektirmeyen güvenli tarama
+- **25+ Cihaz Tespiti**: Paralel tarama ile hızlı sonuçlar
+- **macOS Uyumluluğu**: Port 5001 ile tam uyumluluk
+- **Thread Güvenliği**: Request context sorunları çözüldü
+- **Gelişmiş Hata Yönetimi**: Otomatik alternatif yöntem geçişi
 
 ### V3.3 - Gelişmiş Cihaz Tespiti
 - **Nmap Entegrasyonu**: OS fingerprinting ve servis tespiti
@@ -101,12 +110,12 @@ sudo apt-get install nmap
 
 ## 🚀 Kullanım
 
-### Web Arayüzü (Önerilen)
+### Web Arayüzü (Önerilen - V4.0)
 ```bash
 cd webapp
 python app.py
 ```
-Tarayıcınızda `http://localhost:5000` adresine gidin.
+Tarayıcınızda `http://localhost:5001` adresine gidin.
 
 ### Desktop Uygulaması
 ```bash
@@ -119,30 +128,35 @@ python scanner.py
 
 ## 📊 Özellik Karşılaştırması
 
-| Özellik | V1 | V2 | V3.1 | V3.2 | V3.3 |
-|---------|----|----|----|----|----|
-| ARP Tarama | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Port Tarama | ❌ | ✅ | ✅ | ✅ | ✅ |
-| Web Arayüzü | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Ağ Görselleştirme | ❌ | ❌ | ✅ | ✅ | ✅ |
-| PDF Raporları | ❌ | ❌ | ❌ | ✅ | ✅ |
-| E-posta Gönderimi | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Nmap Entegrasyonu | ❌ | ❌ | ❌ | ❌ | ✅ |
-| DHCP/NetBIOS/mDNS | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Gelişmiş Cihaz Tespiti | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Özellik | V1 | V2 | V3.1 | V3.2 | V3.3 | V4.0 |
+|---------|----|----|----|----|----|----|
+| ARP Tarama | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Port Tarama | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Web Arayüzü | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Ağ Görselleştirme | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| PDF Raporları | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| E-posta Gönderimi | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Nmap Entegrasyonu | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| DHCP/NetBIOS/mDNS | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Gelişmiş Cihaz Tespiti | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Güvenli Tarama** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Alternatif Yöntemler** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **macOS Uyumluluğu** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Thread Güvenliği** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **25+ Cihaz Tespiti** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ## 🔧 API Kullanımı
 
 ### Temel Tarama
 ```bash
-curl -X POST http://localhost:5000/api/scan \
+curl -X POST http://localhost:5001/api/scan \
   -H "Content-Type: application/json" \
   -d '{"ip_range": "192.168.1.0/24", "port_scan": true}'
 ```
 
 ### Gelişmiş Tarama
 ```bash
-curl -X POST http://localhost:5000/api/advanced-scan \
+curl -X POST http://localhost:5001/api/advanced-scan \
   -H "Content-Type: application/json" \
   -d '{
     "ip_range": "192.168.1.0/24",
@@ -155,12 +169,12 @@ curl -X POST http://localhost:5000/api/advanced-scan \
 
 ### Cihaz Detayları
 ```bash
-curl http://localhost:5000/api/device-details/192.168.1.1
+curl http://localhost:5001/api/device-details/192.168.1.1
 ```
 
 ### Rapor Oluşturma
 ```bash
-curl -X POST http://localhost:5000/api/generate-reports
+curl -X POST http://localhost:5001/api/generate-reports
 ```
 
 ## 📁 Proje Yapısı
@@ -260,4 +274,4 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 ---
 
-**IP Scanner V3.3** - Profesyonel ağ tarama çözümü 🚀 
+**IP Scanner V4.0** - Profesyonel ağ tarama çözümü 🚀 
