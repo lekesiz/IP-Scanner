@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask_cors import CORS
 import threading
 import json
 from scanner_v2 import IPScannerV2
@@ -12,13 +13,51 @@ from user_management import user_manager
 from datetime import datetime
 import psutil
 from device_detector import device_detector
+import logging
+
+# Logging konfigürasyonu
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('ip_scanner.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# CORS policy - Güvenlik
+CORS(app, origins=['http://localhost:5001', 'http://127.0.0.1:5001'], 
+     supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE'])
+
+# Rate limiting için basit cache
+from collections import defaultdict
+import time
+rate_limit_cache = defaultdict(list)
+
+def check_rate_limit(ip, limit=100, window=3600):
+    """Basit rate limiting"""
+    now = time.time()
+    # Eski kayıtları temizle
+    rate_limit_cache[ip] = [t for t in rate_limit_cache[ip] if now - t < window]
+    
+    if len(rate_limit_cache[ip]) >= limit:
+        return False
+    
+    rate_limit_cache[ip].append(now)
+    return True
+
 scanner = None
 scan_results = []
 
 @app.route('/')
 def index():
+    # Rate limiting
+    if not check_rate_limit(request.remote_addr):
+        return jsonify({'error': 'Rate limit exceeded'}), 429
+    
     # Cookie'den token kontrolü
     token = request.cookies.get('auth_token')
     if not token:
@@ -34,174 +73,244 @@ def index():
 
 @app.route('/login')
 def login():
+    # Rate limiting
+    if not check_rate_limit(request.remote_addr, limit=10, window=300):
+        return jsonify({'error': 'Too many login attempts'}), 429
+    
     # Eğer kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
     token = request.headers.get('Authorization')
     if token and token.startswith('Bearer '):
         token = token[7:]
-        if user_manager.validate_token(token):
+        if user_manager.verify_token(token):
             return redirect('/')
+    
+    # Cookie'den token kontrolü
+    token = request.cookies.get('auth_token')
+    if token and user_manager.verify_token(token):
+        return redirect('/')
     
     return render_template('login.html')
 
 # Kullanıcı yönetimi endpoint'leri
 @app.route('/api/auth/register', methods=['POST'])
 def api_register():
-    """Kullanıcı kaydı"""
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    full_name = data.get('full_name')
+    """Kullanıcı kaydı - Input validation ile"""
+    # Rate limiting
+    if not check_rate_limit(request.remote_addr, limit=5, window=3600):
+        return jsonify({'error': 'Too many registration attempts'}), 429
     
-    if not all([username, email, password]):
-        return jsonify({'error': 'Tüm alanlar gerekli'}), 400
-    
-    result = user_manager.register_user(username, email, password, full_name)
-    
-    if result['success']:
-        return jsonify(result), 201
-    else:
-        return jsonify(result), 400
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+        
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        full_name = data.get('full_name', '').strip()
+        
+        if not all([username, email, password]):
+            return jsonify({'error': 'Tüm alanlar gerekli'}), 400
+        
+        result = user_manager.register_user(username, email, password, full_name)
+        
+        if result['success']:
+            logger.info(f"New user registered: {username}")
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
 def api_login():
-    """Kullanıcı girişi"""
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
+    """Kullanıcı girişi - Güvenlik iyileştirmeleri ile"""
+    # Rate limiting - Geçici olarak devre dışı
+    # if not check_rate_limit(request.remote_addr, limit=10, window=300):
+    #     return jsonify({'error': 'Too many login attempts'}), 429
     
-    if not all([username, password]):
-        return jsonify({'error': 'Kullanıcı adı ve şifre gerekli'}), 400
-    
-    result = user_manager.login_user(username, password)
-    
-    if result['success']:
-        response = jsonify(result)
-        # Token'ı cookie olarak da set et
-        response.set_cookie('auth_token', result['token'], max_age=8*60*60, httponly=True, samesite='Lax')
-        return response
-    else:
-        return jsonify(result), 401
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+        
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        
+        if not all([username, password]):
+            return jsonify({'error': 'Kullanıcı adı ve şifre gerekli'}), 400
+        
+        result = user_manager.login_user(username, password)
+        
+        if result['success']:
+            logger.info(f"User login successful: {username}")
+            response = jsonify(result)
+            # Token'ı cookie olarak da set et - Güvenli
+            response.set_cookie('auth_token', result['token'], 
+                              max_age=8*60*60, httponly=True, 
+                              samesite='Lax', secure=False)  # Production'da secure=True
+            return response
+        else:
+            logger.warning(f"Failed login attempt: {username}")
+            return jsonify(result), 401
+            
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/auth/logout', methods=['POST'])
 @user_manager.require_auth
 def api_logout():
     """Kullanıcı çıkışı"""
-    token = request.headers.get('Authorization')
-    if token.startswith('Bearer '):
-        token = token[7:]
-    
-    result = user_manager.logout_user(token)
-    response = jsonify(result)
-    # Cookie'yi temizle
-    response.delete_cookie('auth_token')
-    return response
+    try:
+        token = request.headers.get('Authorization')
+        if token.startswith('Bearer '):
+            token = token[7:]
+        
+        result = user_manager.logout_user(token)
+        response = jsonify(result)
+        # Cookie'yi temizle
+        response.delete_cookie('auth_token')
+        logger.info(f"User logout: {request.current_user['username']}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/auth/profile', methods=['GET'])
 @user_manager.require_auth
 def api_profile():
     """Kullanıcı profili"""
-    user_id = request.current_user['user_id']
-    profile = user_manager.get_user_profile(user_id)
-    
-    if profile:
-        return jsonify({'status': 'ok', 'user': profile})
-    else:
-        return jsonify({'error': 'Profil bulunamadı'}), 404
+    try:
+        user_id = request.current_user['user_id']
+        profile = user_manager.get_user_profile(user_id)
+        
+        if profile:
+            return jsonify({'status': 'ok', 'user': profile})
+        else:
+            return jsonify({'error': 'Profil bulunamadı'}), 404
+            
+    except Exception as e:
+        logger.error(f"Profile error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/auth/settings', methods=['GET', 'PUT'])
 @user_manager.require_auth
 def api_settings():
     """Kullanıcı ayarları"""
-    user_id = request.current_user['user_id']
-    
-    if request.method == 'GET':
-        profile = user_manager.get_user_profile(user_id)
-        if profile:
-            return jsonify({'status': 'ok', 'settings': profile['settings']})
-        else:
-            return jsonify({'error': 'Ayarlar bulunamadı'}), 404
-    
-    elif request.method == 'PUT':
-        data = request.json
+    try:
+        user_id = request.current_user['user_id']
         
-        # Mevcut ayarları al
-        profile = user_manager.get_user_profile(user_id)
-        current_settings = profile['settings'] if profile else {}
+        if request.method == 'GET':
+            profile = user_manager.get_user_profile(user_id)
+            if profile:
+                return jsonify({'status': 'ok', 'settings': profile['settings']})
+            else:
+                return jsonify({'error': 'Ayarlar bulunamadı'}), 404
         
-        # Yeni ayarları mevcut ayarlarla birleştir
-        updated_settings = {**current_settings, **data}
-        
-        result = user_manager.update_user_settings(user_id, updated_settings)
-        
-        if result['success']:
-            return jsonify(result)
-        else:
-            return jsonify(result), 400
+        elif request.method == 'PUT':
+            data = request.json
+            if not data:
+                return jsonify({'error': 'Invalid JSON data'}), 400
+            
+            # Mevcut ayarları al
+            profile = user_manager.get_user_profile(user_id)
+            current_settings = profile['settings'] if profile else {}
+            
+            # Yeni ayarları mevcut ayarlarla birleştir
+            updated_settings = {**current_settings, **data}
+            
+            result = user_manager.update_user_settings(user_id, updated_settings)
+            
+            if result['success']:
+                return jsonify(result)
+            else:
+                return jsonify(result), 400
+                
+    except Exception as e:
+        logger.error(f"Settings error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 # Tarama endpoint'leri (kimlik doğrulama ile)
 @app.route('/api/scan', methods=['POST'])
 @user_manager.require_auth
 def api_scan():
+    """Temel tarama - Güvenlik iyileştirmeleri ile"""
     global scan_results
     user_id = user_manager.get_user_id_from_token(request.headers.get('Authorization', '').replace('Bearer ', ''))
     
-    data = request.get_json()
-    ip_range = data.get('ip_range', '192.168.1.0/24')
-    
-    def do_scan():
-        global scan_results
-        try:
-            # Yeni cihaz tespit sistemi ile tarama
-            from device_detector import device_detector
-            
-            # Temel ARP taraması
-            scanner = IPScannerV2()
-            basic_results = scanner.scan_network(ip_range)
-            
-            # Gelişmiş analiz için device_detector kullan
-            enhanced_results = []
-            for device in basic_results:
-                # Zaten analiz edilmiş, sadece formatla
-                enhanced_device = {
-                    'ip': device['ip'],
-                    'mac': device['mac'],
-                    'vendor': device['vendor'],
-                    'device_type': device['device_type'],
-                    'confidence': device.get('confidence', 0),
-                    'open_ports': device.get('open_ports', []),
-                    'status': 'Aktif',
-                    'last_seen': datetime.now().isoformat(),
-                    'hostname': device.get('hostname'),
-                    'services': device.get('services', [])
-                }
-                enhanced_results.append(enhanced_device)
-            
-            scan_results = enhanced_results
-            
-        except Exception as e:
-            print(f"Scan error: {str(e)}")
-            scan_results = []
-
-    t = threading.Thread(target=do_scan)
-    t.start()
-    t.join()
-    
-    # Aktivite kaydet - thread dışında
     try:
-        user_manager.log_activity(
-            user_id,
-            'scan',
-            f'Tarama yapıldı: {ip_range} ({len(scan_results)} cihaz)'
-        )
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON data'}), 400
+        
+        ip_range = data.get('ip_range', '192.168.1.0/24')
+        
+        # Input validation
+        if not ip_range or '/' not in ip_range:
+            return jsonify({'error': 'Geçerli IP aralığı giriniz'}), 400
+        
+        def do_scan():
+            global scan_results
+            try:
+                # Yeni cihaz tespit sistemi ile tarama
+                from device_detector import device_detector
+                
+                # Temel ARP taraması
+                scanner = IPScannerV2()
+                basic_results = scanner.scan_network(ip_range)
+                
+                # Gelişmiş analiz için device_detector kullan
+                enhanced_results = []
+                for device in basic_results:
+                    # Zaten analiz edilmiş, sadece formatla
+                    enhanced_device = {
+                        'ip': device['ip'],
+                        'mac': device['mac'],
+                        'vendor': device['vendor'],
+                        'device_type': device['device_type'],
+                        'confidence': device.get('confidence', 0),
+                        'open_ports': device.get('open_ports', []),
+                        'status': 'Aktif',
+                        'last_seen': datetime.now().isoformat(),
+                        'hostname': device.get('hostname'),
+                        'services': device.get('services', [])
+                    }
+                    enhanced_results.append(enhanced_device)
+                
+                scan_results = enhanced_results
+                
+            except Exception as e:
+                logger.error(f"Scan error: {str(e)}")
+                scan_results = []
+
+        t = threading.Thread(target=do_scan)
+        t.start()
+        t.join()
+        
+        # Aktivite kaydet - thread dışında
+        try:
+            user_manager.log_activity(
+                user_id,
+                'scan',
+                f'Tarama yapıldı: {ip_range} ({len(scan_results)} cihaz)'
+            )
+        except Exception as e:
+            logger.error(f"Aktivite kaydetme hatası: {str(e)}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Tarama tamamlandı: {len(scan_results)} cihaz bulundu',
+            'devices': scan_results,
+            'scan_time': datetime.now().isoformat()
+        })
+        
     except Exception as e:
-        print(f"Aktivite kaydetme hatası: {str(e)}")
-    
-    return jsonify({
-        'success': True,
-        'devices': scan_results,
-        'total': len(scan_results)
-    })
+        logger.error(f"API scan error: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/advanced-scan', methods=['POST'])
 @user_manager.require_auth
@@ -735,4 +844,13 @@ def api_anomaly_detection():
         return jsonify({'status': 'error', 'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5001) 
+    # Production ayarları
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    host = os.getenv('FLASK_HOST', '127.0.0.1')
+    port = int(os.getenv('FLASK_PORT', 5001))
+    
+    logger.info(f"Starting IP Scanner V4.0 on {host}:{port}")
+    logger.info(f"Debug mode: {debug_mode}")
+    
+    # Production'da debug mode kapalı olmalı
+    app.run(debug=debug_mode, host=host, port=port) 

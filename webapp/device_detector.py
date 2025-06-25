@@ -7,9 +7,14 @@ import requests
 import socket
 import subprocess
 import platform
+import logging
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from constants import MAC_VENDOR_PREFIXES, SERVICE_PORTS, DEVICE_TYPES
+
+# Logging konfigürasyonu
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DeviceInfo:
@@ -27,18 +32,14 @@ class ProfessionalDeviceDetector:
     def __init__(self):
         self.mac_vendor_cache = {}
         self.device_signatures = self._load_device_signatures()
-        self.port_services = self._load_port_services()
+        self.port_services = SERVICE_PORTS
         
     def _load_device_signatures(self) -> Dict:
         """Cihaz imzalarını yükler"""
         return {
             # Router/Modem imzaları
             'router': {
-                'mac_prefixes': [
-                    '00:1A:11', '00:1B:63', '00:1C:C0', '00:1D:7D', '00:1E:40', '00:1F:3A',
-                    'BC:CF:4F', '00:14:22', '00:16:3E', '00:18:F8', '00:1A:92', '00:1C:7E',
-                    '00:1E:58', '00:20:78', '00:22:6B', '00:24:01', '00:26:18', '00:28:6F'
-                ],
+                'mac_prefixes': MAC_VENDOR_PREFIXES.get('router', []),
                 'vendor_keywords': ['router', 'gateway', 'modem', 'zyxel', 'tp-link', 'asus', 'netgear'],
                 'port_signatures': [80, 443, 22, 23, 8080, 8443],
                 'service_keywords': ['http', 'https', 'telnet', 'ssh', 'dhcp', 'dns']
@@ -46,11 +47,7 @@ class ProfessionalDeviceDetector:
             
             # Apple cihazları
             'apple': {
-                'mac_prefixes': [
-                    '00:1C:B3', '00:1E:C2', '00:23:12', '00:23:76', '00:25:00', '00:26:08',
-                    '00:26:B0', '00:26:BB', '00:27:84', '00:28:6F', '00:2A:10', '00:2A:6A',
-                    '00:2B:03', '00:2C:BE', '00:2D:76', '00:2E:20', '00:30:65', '00:32:5A'
-                ],
+                'mac_prefixes': MAC_VENDOR_PREFIXES.get('apple', []),
                 'vendor_keywords': ['apple', 'mac', 'iphone', 'ipad'],
                 'port_signatures': [22, 80, 443, 548, 631, 3283, 5900],
                 'service_keywords': ['ssh', 'http', 'https', 'afp', 'ipp', 'vnc']
@@ -58,11 +55,7 @@ class ProfessionalDeviceDetector:
             
             # Samsung cihazları
             'samsung': {
-                'mac_prefixes': [
-                    '00:16:32', '00:19:C5', '00:1B:98', '00:1C:62', '00:1D:25', '00:1E:7D',
-                    '00:20:DB', '00:23:39', '00:25:38', '00:26:18', '00:27:19', '00:28:6F',
-                    '00:2A:10', '00:2B:03', '00:2C:BE', '00:2D:76', '00:2E:20', '00:30:65'
-                ],
+                'mac_prefixes': MAC_VENDOR_PREFIXES.get('samsung', []),
                 'vendor_keywords': ['samsung', 'lg', 'android'],
                 'port_signatures': [22, 80, 443, 8080],
                 'service_keywords': ['ssh', 'http', 'https']
@@ -123,16 +116,6 @@ class ProfessionalDeviceDetector:
             }
         }
     
-    def _load_port_services(self) -> Dict:
-        """Port-servis eşleştirmelerini yükler"""
-        return {
-            21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP', 53: 'DNS', 80: 'HTTP',
-            110: 'POP3', 143: 'IMAP', 443: 'HTTPS', 445: 'SMB', 548: 'AFP',
-            631: 'IPP', 993: 'IMAPS', 995: 'POP3S', 8080: 'HTTP-Alt', 8443: 'HTTPS-Alt',
-            9100: 'Printer', 3389: 'RDP', 5900: 'VNC', 554: 'RTSP', 8000: 'HTTP-Alt',
-            9000: 'HTTP-Alt', 515: 'LPR', 3283: 'Net Assistant'
-        }
-    
     def get_vendor_from_api(self, mac: str) -> str:
         """MAC adresinden üretici bilgisini API'den alır"""
         mac_prefix = mac.upper().replace(":", "")[:6]
@@ -151,7 +134,7 @@ class ProfessionalDeviceDetector:
                 return vendor
                 
         except Exception as e:
-            print(f"Vendor API error for {mac}: {str(e)}")
+            logger.error(f"Vendor API error for {mac}: {str(e)}")
         
         return "Bilinmiyor"
     
@@ -203,115 +186,124 @@ class ProfessionalDeviceDetector:
             best_type = max(device_scores, key=device_scores.get)
             best_score = device_scores[best_type]
             
-            if best_score >= 30:
+            if best_score > 0:
                 detected_type = self._get_device_type_name(best_type)
-                confidence = min(best_score, 95)
+                confidence = min(best_score, 100)
         
         return detected_type, confidence
     
     def _get_device_type_name(self, device_type: str) -> str:
-        """Cihaz türü adını döndürür"""
-        type_names = {
-            'router': 'Router/Modem',
-            'apple': 'Apple Cihazı',
-            'samsung': 'Samsung Cihazı',
-            'huawei': 'Huawei Cihazı',
-            'windows': 'Windows Bilgisayar',
-            'linux': 'Linux Bilgisayar',
-            'printer': 'Yazıcı',
-            'camera': 'IP Kamera'
-        }
-        return type_names.get(device_type, 'Bilinmeyen Cihaz')
+        """Cihaz türü kodunu kullanıcı dostu isme çevir"""
+        return DEVICE_TYPES.get(device_type, device_type.title())
     
     def get_hostname(self, ip: str) -> Optional[str]:
         """IP adresinden hostname alır"""
         try:
-            hostname = socket.gethostbyaddr(ip)[0]
-            return hostname if hostname != ip else None
-        except:
+            return socket.gethostbyaddr(ip)[0]
+        except Exception:
             return None
     
     def scan_ports_fast(self, ip: str, ports: List[int] = None) -> List[int]:
-        """Hızlı port taraması"""
+        """Hızlı port tarama"""
         if ports is None:
-            ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 548, 631, 993, 995, 8080, 8443]
+            ports = list(SERVICE_PORTS.keys())
         
         open_ports = []
         
         def check_port(port):
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(1)
+                sock.settimeout(3)
                 result = sock.connect_ex((ip, port))
                 sock.close()
                 return port if result == 0 else None
-            except:
+            except Exception:
                 return None
         
-        # Paralel port taraması
+        # Paralel port tarama
         with ThreadPoolExecutor(max_workers=20) as executor:
-            future_to_port = {executor.submit(check_port, port): port for port in ports}
-            for future in as_completed(future_to_port):
-                result = future.result()
-                if result:
-                    open_ports.append(result)
+            futures = [executor.submit(check_port, port) for port in ports]
+            
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    if result:
+                        open_ports.append(result)
+                except Exception:
+                    continue
         
         return open_ports
     
     def get_port_services(self, open_ports: List[int]) -> List[Dict]:
-        """Açık portlardan servis bilgilerini alır"""
+        """Açık portlardan servis bilgisi alır"""
         services = []
         for port in open_ports:
-            service_name = self.port_services.get(port, f'Port {port}')
+            service_name = SERVICE_PORTS.get(port, 'unknown')
             services.append({
                 'port': port,
                 'service': service_name,
-                'protocol': 'tcp'
+                'name': service_name
             })
         return services
     
     def analyze_device(self, ip: str, mac: str) -> DeviceInfo:
-        """Tek bir cihazı analiz eder"""
-        # Vendor bilgisini al
-        vendor = self.get_vendor_from_api(mac)
-        
-        # Hostname al
-        hostname = self.get_hostname(ip)
-        
-        # Port taraması yap
-        open_ports = self.scan_ports_fast(ip)
-        services = self.get_port_services(open_ports)
-        
-        # Cihaz türünü tespit et
-        device_type, confidence = self.detect_device_type(mac, vendor, open_ports, services)
-        
-        return DeviceInfo(
-            ip=ip,
-            mac=mac,
-            vendor=vendor,
-            device_type=device_type,
-            confidence=confidence,
-            services=services,
-            hostname=hostname,
-            open_ports=open_ports
-        )
+        """Tek cihaz analizi"""
+        try:
+            # Vendor bilgisi
+            vendor = self.get_vendor_from_api(mac)
+            
+            # Port tarama
+            open_ports = self.scan_ports_fast(ip)
+            services = self.get_port_services(open_ports)
+            
+            # Cihaz türü tespiti
+            device_type, confidence = self.detect_device_type(mac, vendor, open_ports, services)
+            
+            # Hostname
+            hostname = self.get_hostname(ip)
+            
+            return DeviceInfo(
+                ip=ip,
+                mac=mac,
+                vendor=vendor,
+                device_type=device_type,
+                confidence=confidence,
+                services=services,
+                hostname=hostname,
+                open_ports=open_ports
+            )
+            
+        except Exception as e:
+            logger.error(f"Device analysis error: {str(e)}")
+            return DeviceInfo(
+                ip=ip,
+                mac=mac,
+                vendor="Bilinmiyor",
+                device_type="Bilinmeyen",
+                confidence=0
+            )
     
     def analyze_devices_batch(self, devices: List[Dict]) -> List[DeviceInfo]:
         """Toplu cihaz analizi"""
         results = []
         
         with ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_device = {
-                executor.submit(self.analyze_device, device['ip'], device['mac']): device 
-                for device in devices
-            }
+            futures = []
             
-            for future in as_completed(future_to_device):
+            for device in devices:
+                ip = device.get('ip')
+                mac = device.get('mac', '')
+                
+                if ip and mac:
+                    future = executor.submit(self.analyze_device, ip, mac)
+                    futures.append(future)
+            
+            for future in as_completed(futures):
                 try:
                     result = future.result()
                     results.append(result)
                 except Exception as e:
-                    print(f"Device analysis error: {str(e)}")
+                    logger.error(f"Batch analysis error: {str(e)}")
         
         return results
 

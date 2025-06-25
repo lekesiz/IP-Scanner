@@ -10,7 +10,8 @@ from flask import request, jsonify, current_app
 class UserManagement:
     def __init__(self, db_path="users.db"):
         self.db_path = db_path
-        self.secret_key = "ip_scanner_secret_key_2024"
+        # Güvenlik: Secret key'i environment variable'dan al
+        self.secret_key = os.getenv('JWT_SECRET_KEY', 'ip_scanner_secret_key_2024_change_in_production')
         self.init_database()
     
     def init_database(self):
@@ -70,16 +71,28 @@ class UserManagement:
         conn.close()
     
     def hash_password(self, password):
-        """Şifreyi hash'le"""
-        return hashlib.sha256(password.encode()).hexdigest()
+        """Şifreyi güvenli şekilde hash'le"""
+        # Salt ekle ve daha güvenli hash kullan
+        salt = os.getenv('PASSWORD_SALT', 'default_salt_change_in_production')
+        return hashlib.sha256((password + salt).encode()).hexdigest()
     
     def verify_password(self, password, password_hash):
         """Şifreyi doğrula"""
         return self.hash_password(password) == password_hash
     
     def register_user(self, username, email, password, full_name=None, role='user'):
-        """Yeni kullanıcı kaydı"""
+        """Yeni kullanıcı kaydı - Input validation ile"""
         try:
+            # Input validation
+            if not username or len(username) < 3:
+                return {'success': False, 'message': 'Kullanıcı adı en az 3 karakter olmalıdır'}
+            
+            if not email or '@' not in email:
+                return {'success': False, 'message': 'Geçerli bir e-posta adresi giriniz'}
+            
+            if not password or len(password) < 6:
+                return {'success': False, 'message': 'Şifre en az 6 karakter olmalıdır'}
+            
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
@@ -97,11 +110,16 @@ class UserManagement:
             
             user_id = cursor.lastrowid
             
-            # Aktivite kaydı
+            # Aktivite kaydı - Güvenli IP adresi alma
+            try:
+                ip_address = request.remote_addr if request else 'unknown'
+            except:
+                ip_address = 'unknown'
+                
             cursor.execute('''
                 INSERT INTO user_activities (user_id, activity_type, description, ip_address)
                 VALUES (?, ?, ?, ?)
-            ''', (user_id, 'register', 'Kullanıcı kaydı oluşturuldu', request.remote_addr))
+            ''', (user_id, 'register', 'Kullanıcı kaydı oluşturuldu', ip_address))
             
             conn.commit()
             conn.close()
@@ -112,8 +130,12 @@ class UserManagement:
             return {'success': False, 'message': f'Kayıt hatası: {str(e)}'}
     
     def login_user(self, username, password):
-        """Kullanıcı girişi"""
+        """Kullanıcı girişi - Güvenlik iyileştirmeleri ile"""
         try:
+            # Input validation
+            if not username or not password:
+                return {'success': False, 'message': 'Kullanıcı adı ve şifre gerekli'}
+            
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
@@ -133,12 +155,15 @@ class UserManagement:
             if not self.verify_password(password, password_hash):
                 return {'success': False, 'message': 'Geçersiz kullanıcı adı veya şifre'}
             
-            # JWT token oluştur
+            # JWT token oluştur - Daha güvenli
+            now = datetime.utcnow()
             token = jwt.encode({
                 'user_id': user_id,
                 'username': username,
                 'role': role,
-                'exp': datetime.utcnow() + timedelta(hours=8)
+                'exp': int((now + timedelta(hours=8)).timestamp()),
+                'iat': int(now.timestamp()),
+                'iss': 'ip_scanner_v4'
             }, self.secret_key, algorithm='HS256')
             
             # Oturum kaydı
@@ -152,11 +177,16 @@ class UserManagement:
                 UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
             ''', (user_id,))
             
-            # Aktivite kaydı
+            # Aktivite kaydı - Güvenli IP adresi alma
+            try:
+                ip_address = request.remote_addr if request else 'unknown'
+            except:
+                ip_address = 'unknown'
+                
             cursor.execute('''
                 INSERT INTO user_activities (user_id, activity_type, description, ip_address)
                 VALUES (?, ?, ?, ?)
-            ''', (user_id, 'login', 'Kullanıcı girişi yapıldı', request.remote_addr))
+            ''', (user_id, 'login', 'Kullanıcı girişi yapıldı', ip_address))
             
             conn.commit()
             conn.close()
@@ -179,9 +209,17 @@ class UserManagement:
             return {'success': False, 'message': f'Giriş hatası: {str(e)}'}
     
     def verify_token(self, token):
-        """JWT token'ı doğrula"""
+        """JWT token'ı doğrula - Güvenlik iyileştirmeleri ile"""
         try:
+            # Token format kontrolü
+            if not token or not isinstance(token, str):
+                return None
+            
             payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            
+            # Token süresi kontrolü
+            if 'exp' not in payload or datetime.utcnow().timestamp() > payload['exp']:
+                return None
             
             # Oturum kontrolü
             conn = sqlite3.connect(self.db_path)
@@ -213,7 +251,6 @@ class UserManagement:
         except jwt.InvalidTokenError:
             return None
         except Exception as e:
-            print(f"Token verification error: {str(e)}")
             return None
     
     def get_user_id_from_token(self, token):
@@ -241,11 +278,16 @@ class UserManagement:
             
             if result:
                 user_id = result[0]
-                # Aktivite kaydı
+                # Aktivite kaydı - Güvenli IP adresi alma
+                try:
+                    ip_address = request.remote_addr if request else 'unknown'
+                except:
+                    ip_address = 'unknown'
+                    
                 cursor.execute('''
                     INSERT INTO user_activities (user_id, activity_type, description, ip_address)
                     VALUES (?, ?, ?, ?)
-                ''', (user_id, 'logout', 'Kullanıcı çıkışı yapıldı', request.remote_addr))
+                ''', (user_id, 'logout', 'Kullanıcı çıkışı yapıldı', ip_address))
             
             conn.commit()
             conn.close()
@@ -359,13 +401,17 @@ class UserManagement:
         """Kimlik doğrulama decorator'ı"""
         @wraps(f)
         def decorated_function(*args, **kwargs):
+            # Önce Authorization header'dan token al
             token = request.headers.get('Authorization')
+            
+            # Eğer Authorization header yoksa cookie'den al
+            if not token:
+                token = request.cookies.get('auth_token')
+            elif token.startswith('Bearer '):
+                token = token[7:]
             
             if not token:
                 return jsonify({'error': 'Token gerekli'}), 401
-            
-            if token.startswith('Bearer '):
-                token = token[7:]
             
             user = self.verify_token(token)
             if not user:
@@ -392,4 +438,4 @@ class UserManagement:
         return decorator
 
 # Global user management instance
-user_manager = UserManagement() 
+user_manager = UserManagement(db_path=os.path.join(os.path.dirname(__file__), "users.db")) 
