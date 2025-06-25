@@ -9,6 +9,7 @@ from scapy.all import ARP, Ether, srp, sr, IP, TCP, ICMP
 import requests
 import socket
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class IPScannerV2:
     def __init__(self):
@@ -223,20 +224,28 @@ class IPScannerV2:
         """Belirtilen IP adresinde port taraması yapar"""
         if ports is None:
             ports = self.common_ports
-        
         open_ports = []
         try:
-            for port in ports:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(1)
-                result = sock.connect_ex((ip, port))
-                if result == 0:
-                    open_ports.append(port)
-                sock.close()
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                future_to_port = {executor.submit(self.check_port, ip, port): port for port in ports}
+                for future in as_completed(future_to_port):
+                    port = future_to_port[future]
+                    try:
+                        if future.result():
+                            open_ports.append(port)
+                    except Exception:
+                        pass
         except:
             pass
-        
         return open_ports
+
+    def check_port(self, ip, port):
+        """Tek bir portu kontrol eder (thread için)"""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex((ip, port))
+        sock.close()
+        return result == 0
     
     def scan_network(self, ip_range):
         """Ağı tarar ve cihazları bulur"""

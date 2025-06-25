@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 import threading
 import os
 import json
@@ -6,6 +6,7 @@ from scanner_v2 import IPScannerV2
 from network_visualizer import create_network_visualization
 from report_generator import generate_reports, ReportGenerator
 from advanced_scanner import create_advanced_scanner
+from user_management import user_manager
 from datetime import datetime
 
 app = Flask(__name__)
@@ -16,7 +17,95 @@ scan_results = []
 def index():
     return render_template('index.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+# Kullanıcı yönetimi endpoint'leri
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    """Kullanıcı kaydı"""
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    full_name = data.get('full_name')
+    
+    if not all([username, email, password]):
+        return jsonify({'error': 'Tüm alanlar gerekli'}), 400
+    
+    result = user_manager.register_user(username, email, password, full_name)
+    
+    if result['success']:
+        return jsonify(result), 201
+    else:
+        return jsonify(result), 400
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """Kullanıcı girişi"""
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if not all([username, password]):
+        return jsonify({'error': 'Kullanıcı adı ve şifre gerekli'}), 400
+    
+    result = user_manager.login_user(username, password)
+    
+    if result['success']:
+        return jsonify(result)
+    else:
+        return jsonify(result), 401
+
+@app.route('/api/auth/logout', methods=['POST'])
+@user_manager.require_auth
+def api_logout():
+    """Kullanıcı çıkışı"""
+    token = request.headers.get('Authorization')
+    if token.startswith('Bearer '):
+        token = token[7:]
+    
+    result = user_manager.logout_user(token)
+    return jsonify(result)
+
+@app.route('/api/auth/profile', methods=['GET'])
+@user_manager.require_auth
+def api_profile():
+    """Kullanıcı profili"""
+    user_id = request.current_user['user_id']
+    profile = user_manager.get_user_profile(user_id)
+    
+    if profile:
+        return jsonify({'status': 'ok', 'profile': profile})
+    else:
+        return jsonify({'error': 'Profil bulunamadı'}), 404
+
+@app.route('/api/auth/settings', methods=['GET', 'PUT'])
+@user_manager.require_auth
+def api_settings():
+    """Kullanıcı ayarları"""
+    user_id = request.current_user['user_id']
+    
+    if request.method == 'GET':
+        profile = user_manager.get_user_profile(user_id)
+        if profile:
+            return jsonify({'status': 'ok', 'settings': profile['settings']})
+        else:
+            return jsonify({'error': 'Ayarlar bulunamadı'}), 404
+    
+    elif request.method == 'PUT':
+        data = request.json
+        result = user_manager.update_user_settings(user_id, data)
+        
+        if result['success']:
+            return jsonify(result)
+        else:
+            return jsonify(result), 400
+
+# Tarama endpoint'leri (kimlik doğrulama ile)
 @app.route('/api/scan', methods=['POST'])
+@user_manager.require_auth
 def api_scan():
     global scan_results
     ip_range = request.json.get('ip_range', '192.168.1.0/24')
@@ -28,6 +117,13 @@ def api_scan():
         scanner.port_scan_var.set(port_scan)
         results = scanner.scan_network(ip_range)
         scan_results = results
+        
+        # Aktivite kaydet
+        user_manager.log_activity(
+            request.current_user['user_id'],
+            'scan',
+            f'Temel tarama yapıldı: {ip_range}'
+        )
 
     t = threading.Thread(target=do_scan)
     t.start()
@@ -35,6 +131,7 @@ def api_scan():
     return jsonify({'status': 'ok', 'devices': scan_results})
 
 @app.route('/api/advanced-scan', methods=['POST'])
+@user_manager.require_auth
 def api_advanced_scan():
     """Gelişmiş tarama endpoint'i"""
     global scan_results
@@ -93,6 +190,13 @@ def api_advanced_scan():
             
             scan_results = formatted_results
             
+            # Aktivite kaydet
+            user_manager.log_activity(
+                request.current_user['user_id'],
+                'scan',
+                f'Gelişmiş tarama yapıldı: {ip_range} ({len(formatted_results)} cihaz)'
+            )
+            
         except Exception as e:
             print(f"Advanced scan error: {str(e)}")
             scan_results = []
@@ -104,10 +208,12 @@ def api_advanced_scan():
     return jsonify({'status': 'ok', 'devices': scan_results})
 
 @app.route('/api/devices', methods=['GET'])
+@user_manager.require_auth
 def api_devices():
     return jsonify({'devices': scan_results})
 
 @app.route('/api/device-details/<ip>', methods=['GET'])
+@user_manager.require_auth
 def api_device_details(ip):
     """Belirli bir cihazın detaylı bilgilerini döner"""
     device = next((d for d in scan_results if d['ip'] == ip), None)
@@ -117,6 +223,7 @@ def api_device_details(ip):
         return jsonify({'error': 'Cihaz bulunamadı'}), 404
 
 @app.route('/api/network-map', methods=['GET'])
+@user_manager.require_auth
 def api_network_map():
     """Ağ haritası oluşturur ve HTML dosyasını döner"""
     if not scan_results:
@@ -139,6 +246,7 @@ def api_network_map():
         return jsonify({'error': f'Ağ haritası hatası: {str(e)}'}), 500
 
 @app.route('/api/network-stats', methods=['GET'])
+@user_manager.require_auth
 def api_network_stats():
     """Ağ istatistiklerini döner"""
     if not scan_results:
@@ -153,6 +261,7 @@ def api_network_stats():
         return jsonify({'error': f'İstatistik hatası: {str(e)}'}), 500
 
 @app.route('/api/generate-reports', methods=['POST'])
+@user_manager.require_auth
 def api_generate_reports():
     """PDF ve HTML raporları oluşturur"""
     if not scan_results:
@@ -167,6 +276,13 @@ def api_generate_reports():
         # Raporları oluştur
         reports = generate_reports(scan_results, stats, "reports")
         
+        # Aktivite kaydet
+        user_manager.log_activity(
+            request.current_user['user_id'],
+            'report',
+            f'Rapor oluşturuldu: {len(scan_results)} cihaz'
+        )
+        
         return jsonify({
             'status': 'ok',
             'reports': {
@@ -179,6 +295,7 @@ def api_generate_reports():
         return jsonify({'error': f'Rapor oluşturma hatası: {str(e)}'}), 500
 
 @app.route('/api/download-report/<report_type>', methods=['GET'])
+@user_manager.require_auth
 def api_download_report(report_type):
     """Rapor dosyalarını indirir"""
     if not scan_results:
@@ -218,6 +335,7 @@ def api_download_report(report_type):
         return jsonify({'error': f'Rapor indirme hatası: {str(e)}'}), 500
 
 @app.route('/api/send-email', methods=['POST'])
+@user_manager.require_auth
 def api_send_email():
     """E-posta ile rapor gönderir"""
     if not scan_results:
@@ -244,9 +362,9 @@ def api_send_email():
             report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             os.makedirs("reports", exist_ok=True)
             generator.generate_pdf_report(scan_results, stats, report_path)
-            subject = "IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu (PDF)"
+            subject = "IP Scanner V3.4 - Gelişmiş Ağ Tarama Raporu (PDF)"
             body = f"""
-            <h2>IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu</h2>
+            <h2>IP Scanner V3.4 - Gelişmiş Ağ Tarama Raporu</h2>
             <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
             <p>Bu e-posta ile birlikte detaylı PDF raporu gönderilmiştir.</p>
@@ -255,9 +373,9 @@ def api_send_email():
             report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
             os.makedirs("reports", exist_ok=True)
             generator.generate_html_report(scan_results, stats, report_path)
-            subject = "IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu (HTML)"
+            subject = "IP Scanner V3.4 - Gelişmiş Ağ Tarama Raporu (HTML)"
             body = f"""
-            <h2>IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu</h2>
+            <h2>IP Scanner V3.4 - Gelişmiş Ağ Tarama Raporu</h2>
             <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
             <p>Bu e-posta ile birlikte detaylı HTML raporu gönderilmiştir.</p>
@@ -267,6 +385,12 @@ def api_send_email():
         success = generator.send_email_report(to_email, subject, body, report_path, smtp_config)
         
         if success:
+            # Aktivite kaydet
+            user_manager.log_activity(
+                request.current_user['user_id'],
+                'email',
+                f'E-posta gönderildi: {to_email}'
+            )
             return jsonify({'status': 'ok', 'message': 'E-posta başarıyla gönderildi'})
         else:
             return jsonify({'error': 'E-posta gönderilemedi'}), 500
@@ -275,12 +399,87 @@ def api_send_email():
         return jsonify({'error': f'E-posta gönderme hatası: {str(e)}'}), 500
 
 @app.route('/api/report', methods=['GET'])
+@user_manager.require_auth
 def api_report():
     # JSON raporunu geçici dosya olarak sun
     report_path = 'scan_report.json'
     with open(report_path, 'w', encoding='utf-8') as f:
         json.dump(scan_results, f, indent=2, ensure_ascii=False)
     return send_file(report_path, as_attachment=True)
+
+# Admin endpoint'leri
+@app.route('/api/admin/users', methods=['GET'])
+@user_manager.require_auth
+@user_manager.require_role('admin')
+def api_admin_users():
+    """Tüm kullanıcıları listele (sadece admin)"""
+    try:
+        import sqlite3
+        conn = sqlite3.connect(user_manager.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, username, email, full_name, role, created_at, last_login, is_active
+            FROM users ORDER BY created_at DESC
+        ''')
+        
+        users = cursor.fetchall()
+        conn.close()
+        
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user[0],
+                'username': user[1],
+                'email': user[2],
+                'full_name': user[3],
+                'role': user[4],
+                'created_at': user[5],
+                'last_login': user[6],
+                'is_active': bool(user[7])
+            })
+        
+        return jsonify({'status': 'ok', 'users': user_list})
+        
+    except Exception as e:
+        return jsonify({'error': f'Kullanıcı listesi hatası: {str(e)}'}), 500
+
+@app.route('/api/admin/activities', methods=['GET'])
+@user_manager.require_auth
+@user_manager.require_role('admin')
+def api_admin_activities():
+    """Tüm aktiviteleri listele (sadece admin)"""
+    try:
+        import sqlite3
+        conn = sqlite3.connect(user_manager.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT ua.id, u.username, ua.activity_type, ua.description, ua.ip_address, ua.timestamp
+            FROM user_activities ua
+            JOIN users u ON ua.user_id = u.id
+            ORDER BY ua.timestamp DESC
+            LIMIT 100
+        ''')
+        
+        activities = cursor.fetchall()
+        conn.close()
+        
+        activity_list = []
+        for activity in activities:
+            activity_list.append({
+                'id': activity[0],
+                'username': activity[1],
+                'type': activity[2],
+                'description': activity[3],
+                'ip_address': activity[4],
+                'timestamp': activity[5]
+            })
+        
+        return jsonify({'status': 'ok', 'activities': activity_list})
+        
+    except Exception as e:
+        return jsonify({'error': f'Aktivite listesi hatası: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 
