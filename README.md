@@ -1,173 +1,263 @@
-# IP Scanner - Ağ Tarama Uygulaması
+# IP Scanner V3.3 - Gelişmiş Ağ Tarayıcı
 
-Modern ve kullanıcı dostu bir ağ tarama uygulaması. ARP protokolü kullanarak yerel ağdaki cihazları tespit eder ve MAC adreslerinden üretici bilgilerini çeker.
+Profesyonel ağ tarama ve cihaz tespit aracı. Desktop ve web arayüzleri ile kapsamlı ağ analizi yapabilir.
 
 ## 🚀 Özellikler
 
-- **Hızlı Ağ Tarama**: ARP protokolü ile saniyeler içinde ağ taraması
-- **MAC Vendor Lookup**: MAC adreslerinden otomatik üretici bilgisi
-- **Modern GUI**: Tkinter tabanlı kullanıcı dostu arayüz
-- **Port Tarama**: Belirli portların açık olup olmadığını kontrol etme
-- **Cihaz Türü Tespiti**: Router, PC, mobil cihaz vb. sınıflandırma
-- **Kaydetme Özelliği**: Tarama sonuçlarını CSV/JSON formatında kaydetme
-- **Gelişmiş Filtreleme**: IP aralığı, MAC prefix vb. filtreleme
-- **Gerçek Zamanlı İzleme**: Sürekli ağ izleme modu
-- **Çoklu İş Parçacığı**: UI donma önleme
-- **Cache Sistemi**: Performans optimizasyonu
-- **Web Arayüzü**: Flask tabanlı modern web arayüzü
-- **REST API**: Harici uygulamalar için API endpoint'leri
-- **Ağ Haritası**: İnteraktif ağ topolojisi görselleştirmesi
-- **Ağ İstatistikleri**: Detaylı ağ analizi ve raporlama
-- **Otomatik Raporlama**: PDF ve HTML formatında profesyonel raporlar
-- **E-posta Bildirimi**: Raporları otomatik e-posta ile gönderme
-- **Grafik Analizi**: Cihaz türü dağılımı ve istatistik grafikleri
+### V3.3 - Gelişmiş Cihaz Tespiti
+- **Nmap Entegrasyonu**: OS fingerprinting ve servis tespiti
+- **DHCP Keşfi**: DHCP protokolü ile cihaz tespiti
+- **NetBIOS Keşfi**: Windows ağlarında cihaz tespiti
+- **mDNS Keşfi**: Apple cihazları ve Bonjour protokolü
+- **HTTP Fingerprinting**: Web servisleri tespiti
+- **Gelişmiş Cihaz Sınıflandırma**: OS, servis ve MAC tabanlı tespit
+- **Güven Seviyesi**: Cihaz tespit doğruluğu yüzdesi
+
+### V3.2 - Raporlama ve E-posta
+- **PDF Raporları**: Detaylı PDF raporları
+- **HTML Raporları**: Web tabanlı raporlar
+- **E-posta Gönderimi**: SMTP ile otomatik rapor gönderimi
+- **İnteraktif Grafikler**: Matplotlib ile görsel raporlar
+- **Rapor Paneli**: Web arayüzünde rapor yönetimi
+
+### V3.1 - Web Arayüzü ve Görselleştirme
+- **Flask Web Arayüzü**: Modern web tabanlı kullanıcı arayüzü
+- **REST API**: Tam API desteği
+- **Ağ Görselleştirmesi**: NetworkX ve Pyvis ile interaktif ağ haritası
+- **Gerçek Zamanlı İstatistikler**: Ağ durumu ve cihaz istatistikleri
+- **Responsive Tasarım**: Mobil uyumlu arayüz
+
+### V2 - Gelişmiş Özellikler
+- **Port Tarama**: Açık port tespiti
+- **Cihaz Türü Tespiti**: Otomatik cihaz sınıflandırma
+- **Sonuç Kaydetme**: JSON formatında sonuç saklama
+- **Gelişmiş Filtreleme**: IP, MAC, vendor bazlı filtreleme
+- **Gerçek Zamanlı İzleme**: Sürekli ağ izleme
+- **Modern GUI**: Tkinter tabanlı gelişmiş arayüz
+
+### V1 - Temel Özellikler
+- **ARP Tarama**: Hızlı ağ tarama
+- **MAC Vendor Lookup**: Cihaz üretici bilgisi
+- **Basit GUI**: Tkinter arayüzü
+- **Sonuç Görüntüleme**: Tablo formatında sonuçlar
 
 ## 📋 Gereksinimler
 
-- Python 3.7+
-- macOS, Windows, Linux
+```bash
+# Temel gereksinimler
+scapy>=2.5.0
+requests>=2.28.0
+
+# Web arayüzü
+flask>=3.0.0
+jinja2>=3.0.0
+
+# Görselleştirme
+networkx>=3.0
+pyvis>=0.3.1
+
+# Raporlama
+reportlab>=4.0.0
+matplotlib>=3.5.0
+
+# Gelişmiş tarama (V3.3)
+python-nmap>=0.7.1
+pyshark>=0.6
+scapy-http>=1.8.2
+```
 
 ## 🛠️ Kurulum
 
-### 1. Repository'yi klonlayın
+### 1. Repository'yi Klonlayın
 ```bash
-git clone https://github.com/lekesiz/IP-Scanner.git
-cd IP-Scanner
+git clone https://github.com/kullaniciadi/IP_Scan.git
+cd IP_Scan
 ```
 
-### 2. Sanal ortam oluşturun
+### 2. Sanal Ortam Oluşturun
 ```bash
 python -m venv scanner-venv
-source scanner-venv/bin/activate  # macOS/Linux
+source scanner-venv/bin/activate  # Linux/Mac
 # veya
-scanner-venv\Scripts\activate  # Windows
+scanner-venv\Scripts\activate     # Windows
 ```
 
-### 3. Bağımlılıkları yükleyin
+### 3. Bağımlılıkları Yükleyin
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🎯 Kullanım
-
-### Temel Kullanım (Masaüstü)
+### 4. Nmap Kurulumu (V3.3 için)
 ```bash
-python scanner.py      # V1 - Temel sürüm
-python scanner_v2.py   # V2 - Gelişmiş sürüm
+# macOS
+brew install nmap
+
+# Ubuntu/Debian
+sudo apt-get install nmap
+
+# Windows
+# https://nmap.org/download.html adresinden indirin
 ```
 
-### Web Arayüzü (V3.2)
+## 🚀 Kullanım
+
+### Web Arayüzü (Önerilen)
 ```bash
 cd webapp
 python app.py
 ```
 Tarayıcınızda `http://localhost:5000` adresine gidin.
 
-### Gelişmiş Özellikler
-- **IP Aralığı Belirtme**: Varsayılan `192.168.1.0/24`
-- **Port Tarama**: Belirli portları kontrol etme
-- **Sonuçları Kaydetme**: CSV/JSON/PDF/HTML formatında dışa aktarma
-- **Filtreleme**: Cihaz türü, IP aralığı vb. filtreleme
-- **Ağ Haritası**: İnteraktif ağ topolojisi
-- **İstatistikler**: Detaylı ağ analizi
-- **Raporlama**: PDF ve HTML raporları
-- **E-posta Gönderimi**: Otomatik rapor gönderimi
+### Desktop Uygulaması
+```bash
+# V2 - Gelişmiş GUI
+python scanner_v2.py
+
+# V1 - Temel GUI
+python scanner.py
+```
+
+## 📊 Özellik Karşılaştırması
+
+| Özellik | V1 | V2 | V3.1 | V3.2 | V3.3 |
+|---------|----|----|----|----|----|
+| ARP Tarama | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Port Tarama | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Web Arayüzü | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Ağ Görselleştirme | ❌ | ❌ | ✅ | ✅ | ✅ |
+| PDF Raporları | ❌ | ❌ | ❌ | ✅ | ✅ |
+| E-posta Gönderimi | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Nmap Entegrasyonu | ❌ | ❌ | ❌ | ❌ | ✅ |
+| DHCP/NetBIOS/mDNS | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Gelişmiş Cihaz Tespiti | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+## 🔧 API Kullanımı
+
+### Temel Tarama
+```bash
+curl -X POST http://localhost:5000/api/scan \
+  -H "Content-Type: application/json" \
+  -d '{"ip_range": "192.168.1.0/24", "port_scan": true}'
+```
+
+### Gelişmiş Tarama
+```bash
+curl -X POST http://localhost:5000/api/advanced-scan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ip_range": "192.168.1.0/24",
+    "enable_nmap": true,
+    "enable_dhcp": true,
+    "enable_netbios": true,
+    "enable_mdns": true
+  }'
+```
+
+### Cihaz Detayları
+```bash
+curl http://localhost:5000/api/device-details/192.168.1.1
+```
+
+### Rapor Oluşturma
+```bash
+curl -X POST http://localhost:5000/api/generate-reports
+```
 
 ## 📁 Proje Yapısı
 
 ```
-IP-Scanner/
-├── scanner.py          # V1 - Ana uygulama
-├── scanner_v2.py       # V2 - Gelişmiş sürüm
-├── webapp/             # V3.2 - Web arayüzü
-│   ├── app.py         # Flask uygulaması
-│   ├── network_visualizer.py  # Ağ görselleştirme
-│   ├── report_generator.py    # Raporlama sistemi
-│   ├── templates/     # HTML şablonları
-│   └── static/        # Statik dosyalar
-├── reports/           # Oluşturulan raporlar
-├── setup.py           # V1 paketleme
-├── setup_v2.py        # V2 paketleme
-├── requirements.txt   # Python bağımlılıkları
-├── install.sh         # Kurulum scripti
-├── README.md         # Bu dosya
-└── .gitignore        # Git ignore dosyası
+IP_Scan/
+├── scanner.py              # V1 - Temel tarayıcı
+├── scanner_v2.py           # V2 - Gelişmiş tarayıcı
+├── setup.py               # V1 kurulum
+├── setup_v2.py            # V2 kurulum
+├── requirements.txt       # Python bağımlılıkları
+├── webapp/               # Web arayüzü (V3.x)
+│   ├── app.py            # Flask uygulaması
+│   ├── advanced_scanner.py # Gelişmiş tarama (V3.3)
+│   ├── network_visualizer.py # Ağ görselleştirme
+│   ├── report_generator.py   # Rapor oluşturma
+│   ├── templates/
+│   │   └── index.html    # Web arayüzü
+│   └── static/           # Statik dosyalar
+├── reports/              # Oluşturulan raporlar
+└── README.md
 ```
 
-## 🔧 Gelişmiş Özellikler
+## 🎯 Kullanım Senaryoları
 
-### Port Tarama
-- TCP SYN tarama
-- Yaygın portlar (21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995)
-- Özel port aralığı belirtme
+### 1. Ağ Yöneticileri
+- Ağ envanteri oluşturma
+- Güvenlik taraması
+- Cihaz tespiti ve sınıflandırma
 
-### Cihaz Türü Tespiti
-- Router/Modem tespiti
-- Bilgisayar tespiti
-- Mobil cihaz tespiti
-- IoT cihaz tespiti
+### 2. Sistem Yöneticileri
+- Sunucu keşfi
+- Servis tespiti
+- Ağ topolojisi analizi
 
-### Veri Kaydetme
-- CSV formatında dışa aktarma
-- JSON formatında dışa aktarma
-- PDF formatında profesyonel raporlar
-- HTML formatında web raporları
-- Otomatik dosya adlandırma
+### 3. Güvenlik Uzmanları
+- Penetrasyon testi
+- Açık port analizi
+- OS fingerprinting
 
-### Gerçek Zamanlı İzleme
-- Sürekli ağ izleme
-- Yeni cihaz tespiti
-- Cihaz çıkış tespiti
+### 4. IT Destek
+- Cihaz sorun giderme
+- Ağ bağlantı kontrolü
+- Rapor oluşturma
 
-### Web Arayüzü (V3.2)
-- Modern Bootstrap arayüzü
-- REST API endpoint'leri
-- Ağ haritası görselleştirmesi
-- İnteraktif istatistikler
-- Responsive tasarım
-- Raporlama paneli
-- E-posta gönderme modal'ı
+## 🔒 Güvenlik
 
-### Ağ Haritası
-- İnteraktif ağ topolojisi
-- Cihaz türlerine göre renk kodlaması
-- Router bağlantıları
-- Detaylı cihaz bilgileri
-
-### Raporlama Sistemi (V3.2)
-- **PDF Raporları**: Profesyonel format, tablolar, istatistikler
-- **HTML Raporları**: Web uyumlu, responsive tasarım
-- **Grafik Analizi**: Cihaz türü dağılımı pasta grafikleri
-- **E-posta Gönderimi**: SMTP ile otomatik rapor gönderimi
-- **Özelleştirilebilir**: Tarih, saat, cihaz sayısı bilgileri
-
-## 🚨 Güvenlik
-
-Bu uygulama sadece kendi ağınızda kullanılmalıdır. Başkalarının ağlarını izinsiz taramak yasal değildir.
-
-## 📝 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır.
+- Sadece kendi ağınızda kullanın
+- Gerekli izinleri alın
+- Güvenlik politikalarına uyun
+- Test ortamında deneyin
 
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
 2. Feature branch oluşturun (`git checkout -b feature/AmazingFeature`)
 3. Commit yapın (`git commit -m 'Add some AmazingFeature'`)
-4. Branch'e push yapın (`git push origin feature/AmazingFeature`)
-5. Pull Request oluşturun
+4. Push yapın (`git push origin feature/AmazingFeature`)
+5. Pull Request açın
 
-## 📞 İletişim
+## 📝 Lisans
 
-- GitHub: [@lekesiz](https://github.com/lekesiz)
+Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
 
-## 🙏 Teşekkürler
+## 🆘 Destek
 
-- [Scapy](https://scapy.net/) - Ağ paket manipülasyonu
-- [MAC Vendors API](https://api.macvendors.com/) - MAC vendor bilgileri
-- [Tkinter](https://docs.python.org/3/library/tkinter.html) - GUI framework
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [NetworkX](https://networkx.org/) - Ağ analizi
-- [Pyvis](https://pyvis.readthedocs.io/) - Ağ görselleştirme
-- [ReportLab](https://www.reportlab.com/) - PDF raporlama
-- [Matplotlib](https://matplotlib.org/) - Grafik oluşturma 
+- **GitHub Issues**: Hata bildirimi ve özellik istekleri
+- **Dokümantasyon**: Bu README dosyası
+- **Örnekler**: `examples/` klasörü
+
+## 🔄 Güncellemeler
+
+### V3.3 (Güncel)
+- Nmap entegrasyonu eklendi
+- DHCP, NetBIOS, mDNS protokolleri
+- Gelişmiş cihaz tespiti
+- Güven seviyesi hesaplama
+
+### V3.2
+- PDF ve HTML raporları
+- E-posta gönderimi
+- İnteraktif grafikler
+
+### V3.1
+- Web arayüzü
+- Ağ görselleştirmesi
+- REST API
+
+### V2
+- Port tarama
+- Cihaz türü tespiti
+- Gelişmiş GUI
+
+### V1
+- Temel ARP tarama
+- Basit GUI
+
+---
+
+**IP Scanner V3.3** - Profesyonel ağ tarama çözümü 🚀 

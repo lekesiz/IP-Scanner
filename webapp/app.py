@@ -5,6 +5,7 @@ import json
 from scanner_v2 import IPScannerV2
 from network_visualizer import create_network_visualization
 from report_generator import generate_reports, ReportGenerator
+from advanced_scanner import create_advanced_scanner
 from datetime import datetime
 
 app = Flask(__name__)
@@ -33,9 +34,87 @@ def api_scan():
     t.join()
     return jsonify({'status': 'ok', 'devices': scan_results})
 
+@app.route('/api/advanced-scan', methods=['POST'])
+def api_advanced_scan():
+    """Gelişmiş tarama endpoint'i"""
+    global scan_results
+    
+    data = request.json
+    ip_range = data.get('ip_range', '192.168.1.0/24')
+    enable_nmap = data.get('enable_nmap', True)
+    enable_dhcp = data.get('enable_dhcp', True)
+    enable_netbios = data.get('enable_netbios', True)
+    enable_mdns = data.get('enable_mdns', True)
+
+    def do_advanced_scan():
+        global scan_results
+        try:
+            advanced_scanner = create_advanced_scanner()
+            results = advanced_scanner.comprehensive_scan(
+                ip_range=ip_range,
+                enable_nmap=enable_nmap,
+                enable_dhcp=enable_dhcp,
+                enable_netbios=enable_netbios,
+                enable_mdns=enable_mdns
+            )
+            
+            # Sonuçları standart formata dönüştür
+            formatted_results = []
+            for device in results:
+                # Vendor bilgisini al (basit tarama ile)
+                basic_scanner = IPScannerV2()
+                vendor = basic_scanner.get_vendor(device['mac'])
+                
+                # Gelişmiş cihaz türü tespiti
+                device_type_info = advanced_scanner.detect_device_type_advanced(
+                    device['ip'], 
+                    device['mac'], 
+                    vendor,
+                    device.get('os_info'),
+                    device.get('services')
+                )
+                
+                formatted_device = {
+                    'ip': device['ip'],
+                    'mac': device['mac'],
+                    'vendor': vendor,
+                    'device_type': device_type_info['device_type'],
+                    'confidence': device_type_info['confidence'],
+                    'open_ports': [service['port'] for service in device.get('services', [])],
+                    'status': 'Aktif',
+                    'last_seen': datetime.now().isoformat(),
+                    'os_info': device.get('os_info'),
+                    'services': device.get('services'),
+                    'discovery_methods': device.get('discovery_methods', []),
+                    'additional_info': device.get('additional_info', {})
+                }
+                
+                formatted_results.append(formatted_device)
+            
+            scan_results = formatted_results
+            
+        except Exception as e:
+            print(f"Advanced scan error: {str(e)}")
+            scan_results = []
+
+    t = threading.Thread(target=do_advanced_scan)
+    t.start()
+    t.join()
+    
+    return jsonify({'status': 'ok', 'devices': scan_results})
+
 @app.route('/api/devices', methods=['GET'])
 def api_devices():
     return jsonify({'devices': scan_results})
+
+@app.route('/api/device-details/<ip>', methods=['GET'])
+def api_device_details(ip):
+    """Belirli bir cihazın detaylı bilgilerini döner"""
+    device = next((d for d in scan_results if d['ip'] == ip), None)
+    if device:
+        return jsonify({'status': 'ok', 'device': device})
+    else:
+        return jsonify({'error': 'Cihaz bulunamadı'}), 404
 
 @app.route('/api/network-map', methods=['GET'])
 def api_network_map():
@@ -165,9 +244,9 @@ def api_send_email():
             report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             os.makedirs("reports", exist_ok=True)
             generator.generate_pdf_report(scan_results, stats, report_path)
-            subject = "IP Scanner V3.2 - Ağ Tarama Raporu (PDF)"
+            subject = "IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu (PDF)"
             body = f"""
-            <h2>IP Scanner V3.2 - Ağ Tarama Raporu</h2>
+            <h2>IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu</h2>
             <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
             <p>Bu e-posta ile birlikte detaylı PDF raporu gönderilmiştir.</p>
@@ -176,9 +255,9 @@ def api_send_email():
             report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
             os.makedirs("reports", exist_ok=True)
             generator.generate_html_report(scan_results, stats, report_path)
-            subject = "IP Scanner V3.2 - Ağ Tarama Raporu (HTML)"
+            subject = "IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu (HTML)"
             body = f"""
-            <h2>IP Scanner V3.2 - Ağ Tarama Raporu</h2>
+            <h2>IP Scanner V3.3 - Gelişmiş Ağ Tarama Raporu</h2>
             <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
             <p>Bu e-posta ile birlikte detaylı HTML raporu gönderilmiştir.</p>
