@@ -13,6 +13,8 @@ import os
 class AdvancedScanner:
     def __init__(self):
         self.nm = nmap.PortScanner()
+        # Nmap programının path'ini manuel olarak belirt
+        self.nm.scan('127.0.0.1', arguments='-sn')  # Test scan
         self.device_info = {}
         self.os_signatures = {
             'Windows': ['Windows', 'Microsoft', 'MS'],
@@ -25,13 +27,13 @@ class AdvancedScanner:
     def nmap_os_detection(self, ip):
         """Nmap ile OS tespiti yapar"""
         try:
-            # Nmap OS detection scan
-            result = self.nm.scan(ip, arguments='-O --osscan-guess')
+            # Önce basit port taraması yap
+            result = self.nm.scan(ip, arguments='-sS -T4 --max-retries 1')
             
             if ip in self.nm.all_hosts():
                 host_info = self.nm[ip]
                 
-                # OS bilgisi
+                # OS bilgisi (root yetkisi olmadan)
                 if 'osmatch' in host_info and host_info['osmatch']:
                     os_info = host_info['osmatch'][0]
                     return {
@@ -51,14 +53,61 @@ class AdvancedScanner:
                     
         except Exception as e:
             print(f"Nmap OS detection error for {ip}: {str(e)}")
+            # Root yetkisi yoksa basit tespit yap
+            return self.simple_os_detection(ip)
+        
+        return None
+    
+    def simple_os_detection(self, ip):
+        """Basit OS tespiti - root yetkisi gerektirmez"""
+        try:
+            # Basit port taraması
+            result = self.nm.scan(ip, arguments='-sT -T4 --max-retries 1')
+            
+            if ip in self.nm.all_hosts():
+                host_info = self.nm[ip]
+                
+                # Port'lara göre OS tahmini
+                open_ports = []
+                if 'tcp' in host_info:
+                    open_ports = [port for port, info in host_info['tcp'].items() if info['state'] == 'open']
+                
+                # Port'lara göre OS tahmini
+                if 22 in open_ports and 80 in open_ports:
+                    return {
+                        'os_name': 'Linux/Unix',
+                        'os_accuracy': '60',
+                        'os_line': 'Linux/Unix Server'
+                    }
+                elif 3389 in open_ports:
+                    return {
+                        'os_name': 'Windows',
+                        'os_accuracy': '70',
+                        'os_line': 'Windows Server'
+                    }
+                elif 22 in open_ports:
+                    return {
+                        'os_name': 'Linux/Unix',
+                        'os_accuracy': '65',
+                        'os_line': 'Linux/Unix System'
+                    }
+                elif 80 in open_ports or 443 in open_ports:
+                    return {
+                        'os_name': 'Unknown',
+                        'os_accuracy': '50',
+                        'os_line': 'Web Server'
+                    }
+                    
+        except Exception as e:
+            print(f"Simple OS detection error for {ip}: {str(e)}")
         
         return None
     
     def nmap_service_detection(self, ip):
         """Nmap ile servis tespiti yapar"""
         try:
-            # Nmap service detection scan
-            result = self.nm.scan(ip, arguments='-sV --version-intensity 5')
+            # Nmap service detection scan - daha basit parametreler
+            result = self.nm.scan(ip, arguments='-sV --version-intensity 3 --max-retries 1')
             
             if ip in self.nm.all_hosts():
                 host_info = self.nm[ip]
@@ -281,97 +330,241 @@ class AdvancedScanner:
         """Kapsamlı ağ taraması"""
         results = []
         
-        # Temel ARP taraması
-        arp = ARP(pdst=ip_range)
-        ether = Ether(dst="ff:ff:ff:ff:ff:ff")
-        packet = ether / arp
-        
-        arp_results = srp(packet, timeout=3, verbose=0)[0]
-        
-        for _, received in arp_results:
-            ip = received.psrc
-            mac = received.hwsrc
+        try:
+            # Temel ARP taraması (Scapy ile)
+            arp = ARP(pdst=ip_range)
+            ether = Ether(dst="ff:ff:ff:ff:ff:ff")
+            packet = ether / arp
             
-            device_info = {
-                'ip': ip,
-                'mac': mac,
-                'discovery_methods': ['ARP'],
-                'os_info': None,
-                'services': [],
-                'additional_info': {}
-            }
+            arp_results = srp(packet, timeout=3, verbose=0)[0]
             
-            # Nmap taraması (isteğe bağlı)
-            if enable_nmap:
-                try:
-                    # OS detection
-                    os_info = self.nmap_os_detection(ip)
-                    if os_info:
-                        device_info['os_info'] = os_info
-                        device_info['discovery_methods'].append('Nmap OS')
-                    
-                    # Service detection
-                    services = self.nmap_service_detection(ip)
-                    if services:
-                        device_info['services'] = services
-                        device_info['discovery_methods'].append('Nmap Services')
+            for _, received in arp_results:
+                ip = received.psrc
+                mac = received.hwsrc
+                
+                device_info = {
+                    'ip': ip,
+                    'mac': mac,
+                    'discovery_methods': ['ARP'],
+                    'os_info': None,
+                    'services': [],
+                    'additional_info': {}
+                }
+                
+                # Nmap taraması (isteğe bağlı)
+                if enable_nmap:
+                    try:
+                        # OS detection
+                        os_info = self.nmap_os_detection(ip)
+                        if os_info:
+                            device_info['os_info'] = os_info
+                            device_info['discovery_methods'].append('Nmap OS')
                         
-                except Exception as e:
-                    print(f"Nmap scan error for {ip}: {str(e)}")
-            
-            # NetBIOS taraması
-            if enable_netbios:
+                        # Service detection
+                        services = self.nmap_service_detection(ip)
+                        if services:
+                            device_info['services'] = services
+                            device_info['discovery_methods'].append('Nmap Services')
+                            
+                    except Exception as e:
+                        print(f"Nmap scan error for {ip}: {str(e)}")
+                
+                # NetBIOS taraması
+                if enable_netbios:
+                    try:
+                        netbios_info = self.netbios_discovery(ip)
+                        if netbios_info:
+                            device_info['additional_info']['netbios'] = netbios_info
+                            device_info['discovery_methods'].append('NetBIOS')
+                    except Exception as e:
+                        print(f"NetBIOS scan error for {ip}: {str(e)}")
+                
+                # mDNS taraması
+                if enable_mdns:
+                    try:
+                        mdns_info = self.mdns_discovery(ip)
+                        if mdns_info:
+                            device_info['additional_info']['mdns'] = mdns_info
+                            device_info['discovery_methods'].append('mDNS')
+                    except Exception as e:
+                        print(f"mDNS scan error for {ip}: {str(e)}")
+                
+                # HTTP fingerprinting
                 try:
-                    netbios_info = self.netbios_discovery(ip)
-                    if netbios_info:
-                        device_info['additional_info']['netbios'] = netbios_info
-                        device_info['discovery_methods'].append('NetBIOS')
+                    http_info = self.http_fingerprinting(ip)
+                    if http_info:
+                        device_info['additional_info']['http'] = http_info
+                        device_info['discovery_methods'].append('HTTP')
                 except Exception as e:
-                    print(f"NetBIOS scan error for {ip}: {str(e)}")
+                    print(f"HTTP fingerprinting error for {ip}: {str(e)}")
+                
+                results.append(device_info)
             
-            # mDNS taraması
-            if enable_mdns:
+            # DHCP taraması (isteğe bağlı)
+            if enable_dhcp:
                 try:
-                    mdns_info = self.mdns_discovery(ip)
-                    if mdns_info:
-                        device_info['additional_info']['mdns'] = mdns_info
-                        device_info['discovery_methods'].append('mDNS')
+                    dhcp_devices = self.dhcp_discovery(ip_range)
+                    for dhcp_device in dhcp_devices:
+                        # DHCP cihazını mevcut sonuçlarla birleştir
+                        existing_device = next((d for d in results if d['ip'] == dhcp_device['ip']), None)
+                        if existing_device:
+                            existing_device['additional_info']['dhcp'] = dhcp_device
+                            if 'DHCP' not in existing_device['discovery_methods']:
+                                existing_device['discovery_methods'].append('DHCP')
+                        else:
+                            # Yeni DHCP cihazı ekle
+                            dhcp_device['discovery_methods'] = ['DHCP']
+                            dhcp_device['os_info'] = None
+                            dhcp_device['services'] = []
+                            dhcp_device['additional_info'] = {}
+                            results.append(dhcp_device)
                 except Exception as e:
-                    print(f"mDNS scan error for {ip}: {str(e)}")
-            
-            # HTTP fingerprinting
-            try:
-                http_info = self.http_fingerprinting(ip)
-                if http_info:
-                    device_info['additional_info']['http'] = http_info
-                    device_info['discovery_methods'].append('HTTP')
-            except Exception as e:
-                print(f"HTTP fingerprinting error for {ip}: {str(e)}")
-            
-            results.append(device_info)
-        
-        # DHCP taraması (isteğe bağlı)
-        if enable_dhcp:
-            try:
-                dhcp_devices = self.dhcp_discovery(ip_range)
-                for dhcp_device in dhcp_devices:
-                    # DHCP cihazını mevcut sonuçlarla birleştir
-                    existing_device = next((d for d in results if d['ip'] == dhcp_device['ip']), None)
-                    if existing_device:
-                        existing_device['additional_info']['dhcp'] = dhcp_device
-                        if 'DHCP' not in existing_device['discovery_methods']:
-                            existing_device['discovery_methods'].append('DHCP')
-                    else:
-                        # Yeni DHCP cihazı ekle
-                        dhcp_device['discovery_methods'] = ['DHCP']
-                        dhcp_device['os_info'] = None
-                        dhcp_device['services'] = []
-                        dhcp_device['additional_info'] = {}
-                        results.append(dhcp_device)
-            except Exception as e:
-                print(f"DHCP scan error: {str(e)}")
+                    print(f"DHCP scan error: {str(e)}")
+                    
+        except PermissionError:
+            print("Scapy yetkisi yok, alternatif yöntem kullanılıyor...")
+            return self.comprehensive_scan_alternative(ip_range, enable_nmap, enable_dhcp, enable_netbios, enable_mdns)
+        except Exception as e:
+            print(f"Comprehensive scan error: {str(e)}")
+            return self.comprehensive_scan_alternative(ip_range, enable_nmap, enable_dhcp, enable_netbios, enable_mdns)
         
         return results
+    
+    def comprehensive_scan_alternative(self, ip_range, enable_nmap=True, enable_dhcp=True, enable_netbios=True, enable_mdns=True):
+        """Alternatif kapsamlı tarama - Scapy olmadan"""
+        results = []
+        
+        try:
+            # IP aralığını parse et
+            if '/' in ip_range:
+                base_ip = ip_range.split('/')[0]
+                prefix = int(ip_range.split('/')[1])
+                
+                if prefix == 24:  # /24 ağı
+                    base_parts = base_ip.split('.')
+                    base_network = f"{base_parts[0]}.{base_parts[1]}.{base_parts[2]}"
+                    
+                    # Ping ile cihazları bul
+                    def scan_host(host_num):
+                        ip = f"{base_network}.{host_num}"
+                        try:
+                            if platform.system() == "Windows":
+                                result = subprocess.run(['ping', '-n', '1', '-w', '1000', ip], 
+                                                      capture_output=True, text=True, timeout=3)
+                            else:
+                                result = subprocess.run(['ping', '-c', '1', '-W', '2', ip], 
+                                                      capture_output=True, text=True, timeout=3)
+                            
+                            if result.returncode == 0:
+                                # MAC adresini al
+                                mac = self.get_mac_address_alternative(ip)
+                                if mac:
+                                    device_info = {
+                                        'ip': ip,
+                                        'mac': mac,
+                                        'discovery_methods': ['Ping'],
+                                        'os_info': None,
+                                        'services': [],
+                                        'additional_info': {}
+                                    }
+                                    
+                                    # Nmap taraması (isteğe bağlı)
+                                    if enable_nmap:
+                                        try:
+                                            # OS detection
+                                            os_info = self.nmap_os_detection(ip)
+                                            if os_info:
+                                                device_info['os_info'] = os_info
+                                                device_info['discovery_methods'].append('Nmap OS')
+                                            
+                                            # Service detection
+                                            services = self.nmap_service_detection(ip)
+                                            if services:
+                                                device_info['services'] = services
+                                                device_info['discovery_methods'].append('Nmap Services')
+                                                
+                                        except Exception as e:
+                                            print(f"Nmap scan error for {ip}: {str(e)}")
+                                    
+                                    # HTTP fingerprinting (basit)
+                                    try:
+                                        http_info = self.http_fingerprinting_alternative(ip)
+                                        if http_info:
+                                            device_info['additional_info']['http'] = http_info
+                                            device_info['discovery_methods'].append('HTTP')
+                                    except Exception as e:
+                                        print(f"HTTP fingerprinting error for {ip}: {str(e)}")
+                                    
+                                    return device_info
+                        except:
+                            pass
+                        return None
+                    
+                    # Paralel tarama
+                    from concurrent.futures import ThreadPoolExecutor, as_completed
+                    with ThreadPoolExecutor(max_workers=20) as executor:
+                        futures = [executor.submit(scan_host, i) for i in range(1, 255)]
+                        for future in as_completed(futures):
+                            result = future.result()
+                            if result:
+                                results.append(result)
+                    
+        except Exception as e:
+            print(f"Alternative comprehensive scan error: {str(e)}")
+        
+        return results
+    
+    def get_mac_address_alternative(self, ip):
+        """IP adresinden MAC adresi alır (alternatif yöntem)"""
+        try:
+            if platform.system() == "Windows":
+                result = subprocess.run(['arp', '-a', ip], capture_output=True, text=True)
+            else:
+                result = subprocess.run(['arp', '-n', ip], capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                # MAC adresini regex ile bul
+                import re
+                mac_pattern = r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+                match = re.search(mac_pattern, result.stdout)
+                if match:
+                    return match.group(0)
+        except:
+            pass
+        return None
+    
+    def http_fingerprinting_alternative(self, ip, port=80):
+        """HTTP başlıkları ile cihaz tespiti (alternatif yöntem)"""
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(3)
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                # HTTP GET request gönder
+                request = f"GET / HTTP/1.1\r\nHost: {ip}\r\nUser-Agent: Mozilla/5.0 (compatible; IPScanner/3.3)\r\n\r\n"
+                sock.send(request.encode())
+                
+                # Response al
+                response = sock.recv(1024).decode()
+                sock.close()
+                
+                # Server header'ı bul
+                server_header = "Unknown"
+                for line in response.split('\n'):
+                    if line.lower().startswith('server:'):
+                        server_header = line.split(':', 1)[1].strip()
+                        break
+                
+                return {
+                    'ip': ip,
+                    'protocol': 'HTTP',
+                    'server': server_header,
+                    'port': port
+                }
+        except:
+            pass
+        return None
 
 def create_advanced_scanner():
     """Gelişmiş tarayıcı örneği oluşturur"""

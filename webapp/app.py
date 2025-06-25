@@ -1,8 +1,8 @@
+import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 import threading
-import os
 import json
 from scanner_v2 import IPScannerV2
 from network_visualizer import create_network_visualization
@@ -120,9 +120,15 @@ def api_settings():
 @app.route('/api/scan', methods=['POST'])
 @user_manager.require_auth
 def api_scan():
+    """Temel tarama endpoint'i"""
     global scan_results
-    ip_range = request.json.get('ip_range', '192.168.1.0/24')
+    
+    data = request.json
+    ip_range = data.get('ip_range', '192.168.1.0/24')
     port_scan = request.json.get('port_scan', True)
+    
+    # User ID'yi thread dışında al
+    user_id = request.current_user['user_id']
 
     def do_scan():
         global scan_results
@@ -131,9 +137,9 @@ def api_scan():
         results = scanner.scan_network(ip_range)
         scan_results = results
         
-        # Aktivite kaydet
+        # Aktivite kaydet - user_id'yi parametre olarak geç
         user_manager.log_activity(
-            request.current_user['user_id'],
+            user_id,
             'scan',
             f'Temel tarama yapıldı: {ip_range}'
         )
@@ -155,6 +161,9 @@ def api_advanced_scan():
     enable_dhcp = data.get('enable_dhcp', True)
     enable_netbios = data.get('enable_netbios', True)
     enable_mdns = data.get('enable_mdns', True)
+    
+    # User ID'yi thread dışında al
+    user_id = request.current_user['user_id']
 
     def do_advanced_scan():
         global scan_results
@@ -203,9 +212,9 @@ def api_advanced_scan():
             
             scan_results = formatted_results
             
-            # Aktivite kaydet
+            # Aktivite kaydet - user_id'yi parametre olarak geç
             user_manager.log_activity(
-                request.current_user['user_id'],
+                user_id,
                 'scan',
                 f'Gelişmiş tarama yapıldı: {ip_range} ({len(formatted_results)} cihaz)'
             )
@@ -608,4 +617,4 @@ def api_anomaly_detection():
         return jsonify({'status': 'error', 'error': str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, host='127.0.0.1', port=5001) 
