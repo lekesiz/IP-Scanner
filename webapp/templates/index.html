@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>IP Scanner V3.1 Web - Ağ Haritası</title>
+    <title>IP Scanner V3.2 Web - Raporlama ve E-posta</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
@@ -20,11 +20,17 @@
             margin: 20px 0;
             min-height: 400px;
         }
+        .report-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body class="bg-light">
 <div class="container py-4">
-    <h1 class="mb-4">IP Scanner V3.1 Web - Ağ Haritası</h1>
+    <h1 class="mb-4">IP Scanner V3.2 Web - Raporlama ve E-posta</h1>
     
     <!-- Tarama Formu -->
     <form id="scanForm" class="row g-3 mb-3">
@@ -46,10 +52,26 @@
         <div class="col-auto">
             <button type="button" class="btn btn-warning" onclick="showNetworkStats()">İstatistikler</button>
         </div>
-        <div class="col-auto">
-            <a href="/api/report" class="btn btn-success">Raporu İndir (JSON)</a>
-        </div>
     </form>
+    
+    <!-- Raporlama Bölümü -->
+    <div class="report-section">
+        <h3>Raporlama ve E-posta</h3>
+        <div class="row g-3">
+            <div class="col-auto">
+                <button type="button" class="btn btn-success" onclick="downloadReport('pdf')">PDF Rapor İndir</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-success" onclick="downloadReport('html')">HTML Rapor İndir</button>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary" onclick="showEmailModal()">E-posta Gönder</button>
+            </div>
+            <div class="col-auto">
+                <a href="/api/report" class="btn btn-secondary">JSON Rapor İndir</a>
+            </div>
+        </div>
+    </div>
     
     <div id="status" class="alert alert-info" style="display: none;"></div>
     
@@ -84,6 +106,55 @@
     </table>
 </div>
 
+<!-- E-posta Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">E-posta ile Rapor Gönder</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <div class="mb-3">
+                        <label for="toEmail" class="form-label">Alıcı E-posta Adresi</label>
+                        <input type="email" class="form-control" id="toEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reportType" class="form-label">Rapor Türü</label>
+                        <select class="form-select" id="reportType">
+                            <option value="html">HTML Rapor</option>
+                            <option value="pdf">PDF Rapor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smtpServer" class="form-label">SMTP Sunucu</label>
+                        <input type="text" class="form-control" id="smtpServer" placeholder="smtp.gmail.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smtpPort" class="form-label">SMTP Port</label>
+                        <input type="number" class="form-control" id="smtpPort" value="587" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smtpEmail" class="form-label">Gönderen E-posta</label>
+                        <input type="email" class="form-control" id="smtpEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smtpPassword" class="form-label">E-posta Şifresi</label>
+                        <input type="password" class="form-control" id="smtpPassword" required>
+                        <small class="form-text text-muted">Gmail için uygulama şifresi kullanın</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="sendEmail()">Gönder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.getElementById('scanForm').onsubmit = async function(e) {
         e.preventDefault();
@@ -125,6 +196,58 @@
             document.getElementById('statsSection').style.display = 'block';
         } else {
             showStatus('İstatistikler alınamadı: ' + data.error, 'danger');
+        }
+    }
+    
+    async function downloadReport(reportType) {
+        showStatus(`${reportType.toUpperCase()} raporu oluşturuluyor...`, 'info');
+        window.location.href = `/api/download-report/${reportType}`;
+        showStatus(`${reportType.toUpperCase()} raporu indirildi!`, 'success');
+    }
+    
+    function showEmailModal() {
+        const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+        modal.show();
+    }
+    
+    async function sendEmail() {
+        const form = document.getElementById('emailForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const smtpConfig = {
+            smtp_server: document.getElementById('smtpServer').value,
+            smtp_port: parseInt(document.getElementById('smtpPort').value),
+            email: document.getElementById('smtpEmail').value,
+            password: document.getElementById('smtpPassword').value
+        };
+        
+        const emailData = {
+            to_email: document.getElementById('toEmail').value,
+            smtp_config: smtpConfig,
+            report_type: document.getElementById('reportType').value
+        };
+        
+        showStatus('E-posta gönderiliyor...', 'info');
+        
+        try {
+            const resp = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(emailData)
+            });
+            
+            const data = await resp.json();
+            if (data.status === 'ok') {
+                showStatus('E-posta başarıyla gönderildi!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('emailModal')).hide();
+            } else {
+                showStatus('E-posta gönderilemedi: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            showStatus('E-posta gönderme hatası: ' + error.message, 'danger');
         }
     }
     

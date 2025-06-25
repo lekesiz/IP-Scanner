@@ -4,6 +4,8 @@ import os
 import json
 from scanner_v2 import IPScannerV2
 from network_visualizer import create_network_visualization
+from report_generator import generate_reports, ReportGenerator
+from datetime import datetime
 
 app = Flask(__name__)
 scanner = None
@@ -70,6 +72,128 @@ def api_network_stats():
         return jsonify({'status': 'ok', 'stats': stats})
     except Exception as e:
         return jsonify({'error': f'İstatistik hatası: {str(e)}'}), 500
+
+@app.route('/api/generate-reports', methods=['POST'])
+def api_generate_reports():
+    """PDF ve HTML raporları oluşturur"""
+    if not scan_results:
+        return jsonify({'error': 'Önce tarama yapın'}), 400
+    
+    try:
+        # İstatistikleri al
+        from network_visualizer import NetworkVisualizer
+        visualizer = NetworkVisualizer()
+        stats = visualizer.generate_network_stats(scan_results)
+        
+        # Raporları oluştur
+        reports = generate_reports(scan_results, stats, "reports")
+        
+        return jsonify({
+            'status': 'ok',
+            'reports': {
+                'pdf': reports['pdf'],
+                'html': reports['html'],
+                'chart': reports['chart']
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': f'Rapor oluşturma hatası: {str(e)}'}), 500
+
+@app.route('/api/download-report/<report_type>', methods=['GET'])
+def api_download_report(report_type):
+    """Rapor dosyalarını indirir"""
+    if not scan_results:
+        return jsonify({'error': 'Önce tarama yapın'}), 400
+    
+    try:
+        if report_type == 'pdf':
+            # PDF raporu oluştur ve gönder
+            from network_visualizer import NetworkVisualizer
+            visualizer = NetworkVisualizer()
+            stats = visualizer.generate_network_stats(scan_results)
+            
+            generator = ReportGenerator()
+            pdf_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            os.makedirs("reports", exist_ok=True)
+            generator.generate_pdf_report(scan_results, stats, pdf_path)
+            
+            return send_file(pdf_path, as_attachment=True, download_name=f"network_scan_report.pdf")
+        
+        elif report_type == 'html':
+            # HTML raporu oluştur ve gönder
+            from network_visualizer import NetworkVisualizer
+            visualizer = NetworkVisualizer()
+            stats = visualizer.generate_network_stats(scan_results)
+            
+            generator = ReportGenerator()
+            html_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+            os.makedirs("reports", exist_ok=True)
+            generator.generate_html_report(scan_results, stats, html_path)
+            
+            return send_file(html_path, as_attachment=True, download_name=f"network_scan_report.html")
+        
+        else:
+            return jsonify({'error': 'Geçersiz rapor türü'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': f'Rapor indirme hatası: {str(e)}'}), 500
+
+@app.route('/api/send-email', methods=['POST'])
+def api_send_email():
+    """E-posta ile rapor gönderir"""
+    if not scan_results:
+        return jsonify({'error': 'Önce tarama yapın'}), 400
+    
+    try:
+        data = request.json
+        to_email = data.get('to_email')
+        smtp_config = data.get('smtp_config')
+        report_type = data.get('report_type', 'html')
+        
+        if not to_email or not smtp_config:
+            return jsonify({'error': 'E-posta adresi ve SMTP konfigürasyonu gerekli'}), 400
+        
+        # İstatistikleri al
+        from network_visualizer import NetworkVisualizer
+        visualizer = NetworkVisualizer()
+        stats = visualizer.generate_network_stats(scan_results)
+        
+        # Rapor oluştur
+        generator = ReportGenerator()
+        
+        if report_type == 'pdf':
+            report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            os.makedirs("reports", exist_ok=True)
+            generator.generate_pdf_report(scan_results, stats, report_path)
+            subject = "IP Scanner V3.2 - Ağ Tarama Raporu (PDF)"
+            body = f"""
+            <h2>IP Scanner V3.2 - Ağ Tarama Raporu</h2>
+            <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
+            <p>Bu e-posta ile birlikte detaylı PDF raporu gönderilmiştir.</p>
+            """
+        else:
+            report_path = f"reports/scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+            os.makedirs("reports", exist_ok=True)
+            generator.generate_html_report(scan_results, stats, report_path)
+            subject = "IP Scanner V3.2 - Ağ Tarama Raporu (HTML)"
+            body = f"""
+            <h2>IP Scanner V3.2 - Ağ Tarama Raporu</h2>
+            <p>Tarama Tarihi: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            <p>Toplam Cihaz: {stats.get('total_devices', 0)}</p>
+            <p>Bu e-posta ile birlikte detaylı HTML raporu gönderilmiştir.</p>
+            """
+        
+        # E-posta gönder
+        success = generator.send_email_report(to_email, subject, body, report_path, smtp_config)
+        
+        if success:
+            return jsonify({'status': 'ok', 'message': 'E-posta başarıyla gönderildi'})
+        else:
+            return jsonify({'error': 'E-posta gönderilemedi'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': f'E-posta gönderme hatası: {str(e)}'}), 500
 
 @app.route('/api/report', methods=['GET'])
 def api_report():

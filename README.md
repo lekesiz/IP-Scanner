@@ -18,6 +18,9 @@ Modern ve kullanıcı dostu bir ağ tarama uygulaması. ARP protokolü kullanara
 - **REST API**: Harici uygulamalar için API endpoint'leri
 - **Ağ Haritası**: İnteraktif ağ topolojisi görselleştirmesi
 - **Ağ İstatistikleri**: Detaylı ağ analizi ve raporlama
+- **Otomatik Raporlama**: PDF ve HTML formatında profesyonel raporlar
+- **E-posta Bildirimi**: Raporları otomatik e-posta ile gönderme
+- **Grafik Analizi**: Cihaz türü dağılımı ve istatistik grafikleri
 
 ## 📋 Gereksinimler
 
@@ -53,7 +56,7 @@ python scanner.py      # V1 - Temel sürüm
 python scanner_v2.py   # V2 - Gelişmiş sürüm
 ```
 
-### Web Arayüzü (V3.1)
+### Web Arayüzü (V3.2)
 ```bash
 cd webapp
 python app.py
@@ -63,10 +66,12 @@ Tarayıcınızda `http://localhost:5000` adresine gidin.
 ### Gelişmiş Özellikler
 - **IP Aralığı Belirtme**: Varsayılan `192.168.1.0/24`
 - **Port Tarama**: Belirli portları kontrol etme
-- **Sonuçları Kaydetme**: CSV/JSON formatında dışa aktarma
+- **Sonuçları Kaydetme**: CSV/JSON/PDF/HTML formatında dışa aktarma
 - **Filtreleme**: Cihaz türü, IP aralığı vb. filtreleme
 - **Ağ Haritası**: İnteraktif ağ topolojisi
 - **İstatistikler**: Detaylı ağ analizi
+- **Raporlama**: PDF ve HTML raporları
+- **E-posta Gönderimi**: Otomatik rapor gönderimi
 
 ## 📁 Proje Yapısı
 
@@ -74,11 +79,13 @@ Tarayıcınızda `http://localhost:5000` adresine gidin.
 IP-Scanner/
 ├── scanner.py          # V1 - Ana uygulama
 ├── scanner_v2.py       # V2 - Gelişmiş sürüm
-├── webapp/             # V3.1 - Web arayüzü
+├── webapp/             # V3.2 - Web arayüzü
 │   ├── app.py         # Flask uygulaması
 │   ├── network_visualizer.py  # Ağ görselleştirme
+│   ├── report_generator.py    # Raporlama sistemi
 │   ├── templates/     # HTML şablonları
 │   └── static/        # Statik dosyalar
+├── reports/           # Oluşturulan raporlar
 ├── setup.py           # V1 paketleme
 ├── setup_v2.py        # V2 paketleme
 ├── requirements.txt   # Python bağımlılıkları
@@ -103,6 +110,8 @@ IP-Scanner/
 ### Veri Kaydetme
 - CSV formatında dışa aktarma
 - JSON formatında dışa aktarma
+- PDF formatında profesyonel raporlar
+- HTML formatında web raporları
 - Otomatik dosya adlandırma
 
 ### Gerçek Zamanlı İzleme
@@ -110,18 +119,27 @@ IP-Scanner/
 - Yeni cihaz tespiti
 - Cihaz çıkış tespiti
 
-### Web Arayüzü (V3.1)
+### Web Arayüzü (V3.2)
 - Modern Bootstrap arayüzü
 - REST API endpoint'leri
 - Ağ haritası görselleştirmesi
 - İnteraktif istatistikler
 - Responsive tasarım
+- Raporlama paneli
+- E-posta gönderme modal'ı
 
 ### Ağ Haritası
 - İnteraktif ağ topolojisi
 - Cihaz türlerine göre renk kodlaması
 - Router bağlantıları
 - Detaylı cihaz bilgileri
+
+### Raporlama Sistemi (V3.2)
+- **PDF Raporları**: Profesyonel format, tablolar, istatistikler
+- **HTML Raporları**: Web uyumlu, responsive tasarım
+- **Grafik Analizi**: Cihaz türü dağılımı pasta grafikleri
+- **E-posta Gönderimi**: SMTP ile otomatik rapor gönderimi
+- **Özelleştirilebilir**: Tarih, saat, cihaz sayısı bilgileri
 
 ## 🚨 Güvenlik
 
@@ -150,4 +168,6 @@ Bu proje MIT lisansı altında lisanslanmıştır.
 - [Tkinter](https://docs.python.org/3/library/tkinter.html) - GUI framework
 - [Flask](https://flask.palletsprojects.com/) - Web framework
 - [NetworkX](https://networkx.org/) - Ağ analizi
-- [Pyvis](https://pyvis.readthedocs.io/) - Ağ görselleştirme 
+- [Pyvis](https://pyvis.readthedocs.io/) - Ağ görselleştirme
+- [ReportLab](https://www.reportlab.com/) - PDF raporlama
+- [Matplotlib](https://matplotlib.org/) - Grafik oluşturma 
