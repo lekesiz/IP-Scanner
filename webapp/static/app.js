@@ -12,7 +12,6 @@ class IPScannerApp {
 
     init() {
         this.setupEventListeners();
-        this.checkAuthStatus();
         this.setupLoadingStates();
         this.setupErrorHandling();
         this.setupNotifications();
@@ -31,22 +30,65 @@ class IPScannerApp {
             registerForm.addEventListener('submit', (e) => this.handleRegister(e));
         }
 
-        // Scan form
-        const scanForm = document.getElementById('scanForm');
-        if (scanForm) {
-            scanForm.addEventListener('submit', (e) => this.handleScan(e));
+        // Dashboard butonları
+        const quickScanBtn = document.getElementById('quickScanBtn');
+        if (quickScanBtn) {
+            quickScanBtn.addEventListener('click', () => this.handleQuickScan());
         }
 
-        // Advanced scan form
-        const advancedScanForm = document.getElementById('advancedScanForm');
-        if (advancedScanForm) {
-            advancedScanForm.addEventListener('submit', (e) => this.handleAdvancedScan(e));
+        const advancedScanBtn = document.getElementById('advancedScanBtn');
+        if (advancedScanBtn) {
+            advancedScanBtn.addEventListener('click', () => this.handleAdvancedScanClick());
         }
 
-        // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
+        const networkMapBtn = document.getElementById('networkMapBtn');
+        if (networkMapBtn) {
+            networkMapBtn.addEventListener('click', () => this.showNetworkMap());
+        }
+
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        if (generateReportBtn) {
+            generateReportBtn.addEventListener('click', () => this.showReportModal());
+        }
+
+        const startScanBtn = document.getElementById('startScanBtn');
+        if (startScanBtn) {
+            startScanBtn.addEventListener('click', () => this.handleQuickScan());
+        }
+
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshDevices());
+        }
+
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.showExportOptions());
+        }
+
+        // User menu
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+        }
+
+        const profileLink = document.getElementById('profileLink');
+        if (profileLink) {
+            profileLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showProfileModal();
+            });
+        }
+
+        const settingsLink = document.getElementById('settingsLink');
+        if (settingsLink) {
+            settingsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showSettingsModal();
+            });
         }
 
         // Navigation
@@ -336,25 +378,26 @@ class IPScannerApp {
         }
     }
 
-    async handleScan(event) {
-        event.preventDefault();
-        
+    async handleQuickScan() {
         if (this.isScanning) {
             this.showNotification('Zaten tarama yapılıyor', 'warning');
             return;
         }
 
-        const form = event.target;
-        const formData = new FormData(form);
-        
-        const scanData = {
-            ip_range: formData.get('ip_range') || '192.168.1.0/24'
-        };
+        const ipRange = document.getElementById('ipRange')?.value || '192.168.1.0/24';
+        const portScan = document.getElementById('portScan')?.checked || false;
+        const nmapScan = document.getElementById('nmapScan')?.checked || false;
 
         this.isScanning = true;
         this.updateScanUI(true);
 
         try {
+            const scanData = {
+                ip_range: ipRange,
+                enable_port_scan: portScan,
+                enable_nmap: nmapScan
+            };
+
             const response = await this.makeApiCall('/api/scan', {
                 method: 'POST',
                 body: JSON.stringify(scanData)
@@ -364,42 +407,40 @@ class IPScannerApp {
                 this.scanResults = response.devices || [];
                 this.showNotification(`Tarama tamamlandı: ${this.scanResults.length} cihaz bulundu`, 'success');
                 this.displayScanResults();
-                this.updateNetworkMap();
+                this.updateStats();
             } else {
                 this.showNotification(response.message || 'Tarama başarısız', 'error');
             }
 
         } catch (error) {
-            console.error('Scan failed:', error);
+            console.error('Quick scan failed:', error);
+            this.showNotification('Tarama sırasında hata oluştu', 'error');
         } finally {
             this.isScanning = false;
             this.updateScanUI(false);
         }
     }
 
-    async handleAdvancedScan(event) {
-        event.preventDefault();
-        
+    async handleAdvancedScanClick() {
         if (this.isScanning) {
             this.showNotification('Zaten tarama yapılıyor', 'warning');
             return;
         }
 
-        const form = event.target;
-        const formData = new FormData(form);
-        
-        const scanData = {
-            ip_range: formData.get('ip_range') || '192.168.1.0/24',
-            enable_nmap: formData.get('enable_nmap') === 'on',
-            enable_dhcp: formData.get('enable_dhcp') === 'on',
-            enable_netbios: formData.get('enable_netbios') === 'on',
-            enable_mdns: formData.get('enable_mdns') === 'on'
-        };
+        const ipRange = document.getElementById('ipRange')?.value || '192.168.1.0/24';
 
         this.isScanning = true;
         this.updateScanUI(true);
 
         try {
+            const scanData = {
+                ip_range: ipRange,
+                enable_nmap: true,
+                enable_dhcp: true,
+                enable_netbios: true,
+                enable_mdns: true
+            };
+
             const response = await this.makeApiCall('/api/advanced-scan', {
                 method: 'POST',
                 body: JSON.stringify(scanData)
@@ -409,13 +450,14 @@ class IPScannerApp {
                 this.scanResults = response.devices || [];
                 this.showNotification(`Gelişmiş tarama tamamlandı: ${this.scanResults.length} cihaz bulundu`, 'success');
                 this.displayScanResults();
-                this.updateNetworkMap();
+                this.updateStats();
             } else {
                 this.showNotification(response.message || 'Gelişmiş tarama başarısız', 'error');
             }
 
         } catch (error) {
             console.error('Advanced scan failed:', error);
+            this.showNotification('Gelişmiş tarama sırasında hata oluştu', 'error');
         } finally {
             this.isScanning = false;
             this.updateScanUI(false);
@@ -423,207 +465,186 @@ class IPScannerApp {
     }
 
     updateScanUI(isScanning) {
-        const scanBtn = document.querySelector('#scanForm button[type="submit"]');
-        const advancedScanBtn = document.querySelector('#advancedScanForm button[type="submit"]');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const startScanBtn = document.getElementById('startScanBtn');
+        const quickScanBtn = document.getElementById('quickScanBtn');
+        const advancedScanBtn = document.getElementById('advancedScanBtn');
         
-        if (scanBtn) {
-            scanBtn.disabled = isScanning;
-        }
-        
-        if (advancedScanBtn) {
-            advancedScanBtn.disabled = isScanning;
-        }
-
-        // Progress bar
-        const progressBar = document.getElementById('scanProgress');
-        if (progressBar) {
-            if (isScanning) {
-                progressBar.style.display = 'block';
-                progressBar.classList.add('progress-bar-animated');
-            } else {
-                progressBar.style.display = 'none';
-                progressBar.classList.remove('progress-bar-animated');
-            }
+        if (isScanning) {
+            if (loadingState) loadingState.style.display = 'block';
+            if (emptyState) emptyState.style.display = 'none';
+            if (startScanBtn) startScanBtn.disabled = true;
+            if (quickScanBtn) quickScanBtn.disabled = true;
+            if (advancedScanBtn) advancedScanBtn.disabled = true;
+        } else {
+            if (loadingState) loadingState.style.display = 'none';
+            if (startScanBtn) startScanBtn.disabled = false;
+            if (quickScanBtn) quickScanBtn.disabled = false;
+            if (advancedScanBtn) advancedScanBtn.disabled = false;
         }
     }
 
     displayScanResults() {
-        const resultsContainer = document.getElementById('scanResults');
-        if (!resultsContainer) return;
-
+        const container = document.getElementById('devicesContainer');
+        const emptyState = document.getElementById('emptyState');
+        
+        if (!container) return;
+        
         if (this.scanResults.length === 0) {
-            resultsContainer.innerHTML = '<div class="alert alert-info">Hiç cihaz bulunamadı.</div>';
+            container.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
-
-        const table = this.createResultsTable();
-        resultsContainer.innerHTML = '';
-        resultsContainer.appendChild(table);
-
-        // Export buttons
-        this.addExportButtons(resultsContainer);
-    }
-
-    createResultsTable() {
-        const table = document.createElement('table');
-        table.className = 'table table-striped table-hover';
         
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr>
-                <th>IP Adresi</th>
-                <th>MAC Adresi</th>
-                <th>Üretici</th>
-                <th>Cihaz Türü</th>
-                <th>Güven</th>
-                <th>Durum</th>
-                <th>İşlemler</th>
-            </tr>
-        `;
+        if (emptyState) emptyState.style.display = 'none';
         
-        const tbody = document.createElement('tbody');
-        this.scanResults.forEach(device => {
-            const row = this.createDeviceRow(device);
-            tbody.appendChild(row);
+        container.innerHTML = this.scanResults.map(device => this.createDeviceCard(device)).join('');
+        
+        // Cihaz kartlarına click event'leri ekle
+        container.querySelectorAll('.device-card').forEach((card, index) => {
+            card.addEventListener('click', () => {
+                this.showDeviceModal(this.scanResults[index]);
+            });
         });
-
-        table.appendChild(thead);
-        table.appendChild(tbody);
-        return table;
     }
 
-    createDeviceRow(device) {
-        const row = document.createElement('tr');
+    createDeviceCard(device) {
+        const statusClass = device.status === 'Aktif' ? 'online' : 'offline';
+        const statusIcon = device.status === 'Aktif' ? 'fa-wifi' : 'fa-times-circle';
+        const statusColor = device.status === 'Aktif' ? 'text-success' : 'text-danger';
         
-        const confidenceClass = this.getConfidenceClass(device.confidence);
-        const statusClass = device.status === 'Aktif' ? 'text-success' : 'text-danger';
+        const deviceTypeIcon = this.getDeviceTypeIcon(device.device_type || 'unknown');
         
-        row.innerHTML = `
-            <td><strong>${device.ip}</strong></td>
-            <td><code>${device.mac || 'Bilinmiyor'}</code></td>
-            <td>${device.vendor || 'Bilinmiyor'}</td>
-            <td>
-                <span class="badge bg-primary">${device.device_type || 'Bilinmeyen'}</span>
-            </td>
-            <td>
-                <div class="progress" style="height: 20px;">
-                    <div class="progress-bar ${confidenceClass}" style="width: ${device.confidence || 0}%">
-                        ${device.confidence || 0}%
+        return `
+            <div class="col">
+                <div class="card device-card ${statusClass} h-100" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="${deviceTypeIcon} device-type-icon"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-1">${device.ip}</h6>
+                                <small class="text-muted">${device.mac || 'MAC Yok'}</small>
+                            </div>
+                            <span class="${statusColor}">
+                                <i class="fas ${statusIcon}"></i>
+                            </span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">Cihaz Türü:</small><br>
+                            <span class="badge bg-secondary">${device.device_type || 'Bilinmiyor'}</span>
+                        </div>
+                        
+                        ${device.vendor ? `
+                        <div class="mb-2">
+                            <small class="text-muted">Üretici:</small><br>
+                            <small>${device.vendor}</small>
+                        </div>
+                        ` : ''}
+                        
+                        ${device.open_ports && device.open_ports.length > 0 ? `
+                        <div class="mb-2">
+                            <small class="text-muted">Açık Portlar:</small><br>
+                            <small>${device.open_ports.slice(0, 3).join(', ')}${device.open_ports.length > 3 ? '...' : ''}</small>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="mt-auto">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); app.showDeviceDetails('${device.ip}')">
+                                <i class="fas fa-info-circle me-1"></i>Detaylar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </td>
-            <td>
-                <span class="${statusClass}">
-                    <i class="fas fa-circle"></i> ${device.status || 'Bilinmiyor'}
-                </span>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-outline-info" onclick="app.showDeviceDetails('${device.ip}')">
-                    <i class="fas fa-info-circle"></i> Detay
-                </button>
-            </td>
+            </div>
         `;
-        
-        return row;
     }
 
-    getConfidenceClass(confidence) {
-        if (confidence >= 80) return 'bg-success';
-        if (confidence >= 50) return 'bg-warning';
-        return 'bg-danger';
-    }
-
-    addExportButtons(container) {
-        const exportDiv = document.createElement('div');
-        exportDiv.className = 'mt-3';
-        exportDiv.innerHTML = `
-            <button class="btn btn-success me-2" onclick="app.exportResults('csv')">
-                <i class="fas fa-download"></i> CSV İndir
-            </button>
-            <button class="btn btn-info me-2" onclick="app.exportResults('json')">
-                <i class="fas fa-download"></i> JSON İndir
-            </button>
-            <button class="btn btn-warning me-2" onclick="app.generateReport()">
-                <i class="fas fa-file-pdf"></i> Rapor Oluştur
-            </button>
-        `;
-        container.appendChild(exportDiv);
+    getDeviceTypeIcon(deviceType) {
+        const icons = {
+            'router': 'fas fa-wifi',
+            'switch': 'fas fa-network-wired',
+            'server': 'fas fa-server',
+            'desktop': 'fas fa-desktop',
+            'laptop': 'fas fa-laptop',
+            'mobile': 'fas fa-mobile-alt',
+            'printer': 'fas fa-print',
+            'camera': 'fas fa-video',
+            'phone': 'fas fa-phone',
+            'tablet': 'fas fa-tablet-alt',
+            'tv': 'fas fa-tv',
+            'game': 'fas fa-gamepad',
+            'unknown': 'fas fa-question-circle'
+        };
+        return icons[deviceType.toLowerCase()] || icons['unknown'];
     }
 
     async showDeviceDetails(ip) {
         try {
             const response = await this.makeApiCall(`/api/device-details/${ip}`);
-            
-            if (response.success) {
+            if (response.device) {
                 this.showDeviceModal(response.device);
             } else {
                 this.showNotification('Cihaz detayları alınamadı', 'error');
             }
         } catch (error) {
             console.error('Device details failed:', error);
+            this.showNotification('Cihaz detayları alınamadı', 'error');
         }
     }
 
     showDeviceModal(device) {
-        const modal = document.getElementById('deviceModal');
-        if (!modal) return;
-
-        const modalBody = modal.querySelector('.modal-body');
-        modalBody.innerHTML = this.createDeviceDetailsHTML(device);
-
-        const bsModal = new bootstrap.Modal(modal);
-        bsModal.show();
+        const modal = new bootstrap.Modal(document.getElementById('deviceModal'));
+        const modalBody = document.getElementById('deviceModalBody');
+        
+        if (modalBody) {
+            modalBody.innerHTML = this.createDeviceDetailsHTML(device);
+        }
+        
+        modal.show();
     }
 
     createDeviceDetailsHTML(device) {
         return `
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Temel Bilgiler</h5>
+                    <h6>Genel Bilgiler</h6>
                     <table class="table table-sm">
                         <tr><td>IP Adresi:</td><td><strong>${device.ip}</strong></td></tr>
                         <tr><td>MAC Adresi:</td><td><code>${device.mac || 'Bilinmiyor'}</code></td></tr>
+                        <tr><td>Durum:</td><td><span class="badge ${device.status === 'Aktif' ? 'bg-success' : 'bg-danger'}">${device.status}</span></td></tr>
+                        <tr><td>Cihaz Türü:</td><td>${device.device_type || 'Bilinmiyor'}</td></tr>
                         <tr><td>Üretici:</td><td>${device.vendor || 'Bilinmiyor'}</td></tr>
-                        <tr><td>Cihaz Türü:</td><td>${device.device_type || 'Bilinmeyen'}</td></tr>
-                        <tr><td>Hostname:</td><td>${device.hostname || 'Bilinmiyor'}</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
-                    <h5>Teknik Bilgiler</h5>
-                    <table class="table table-sm">
-                        <tr><td>Güven Seviyesi:</td><td>${device.confidence || 0}%</td></tr>
-                        <tr><td>Durum:</td><td>${device.status || 'Bilinmiyor'}</td></tr>
-                        <tr><td>Son Görülme:</td><td>${device.last_seen || 'Bilinmiyor'}</td></tr>
-                        <tr><td>Protokoller:</td><td>${(device.protocols || []).join(', ') || 'Yok'}</td></tr>
-                    </table>
+                    <h6>Port Bilgileri</h6>
+                    ${device.open_ports && device.open_ports.length > 0 ? `
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr><th>Port</th><th>Servis</th><th>Durum</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${device.open_ports.map(port => `
+                                        <tr>
+                                            <td>${port.port || port}</td>
+                                            <td>${port.service || 'Bilinmiyor'}</td>
+                                            <td><span class="badge bg-success">Açık</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<p class="text-muted">Açık port bulunamadı</p>'}
                 </div>
             </div>
-            ${device.open_ports && device.open_ports.length > 0 ? `
-            <div class="mt-3">
-                <h5>Açık Portlar</h5>
-                <div class="row">
-                    ${device.open_ports.map(port => `
-                        <div class="col-md-2 mb-2">
-                            <span class="badge bg-success">${port}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            ` : ''}
-            ${device.services && device.services.length > 0 ? `
-            <div class="mt-3">
-                <h5>Servisler</h5>
-                <div class="row">
-                    ${device.services.map(service => `
-                        <div class="col-md-4 mb-2">
-                            <div class="card">
-                                <div class="card-body p-2">
-                                    <small><strong>${service.service || 'Bilinmiyor'}</strong></small><br>
-                                    <small class="text-muted">Port: ${service.port || 'N/A'}</small>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
+            ${device.os_info ? `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>İşletim Sistemi Bilgileri</h6>
+                    <pre class="bg-light p-3 rounded">${JSON.stringify(device.os_info, null, 2)}</pre>
                 </div>
             </div>
             ` : ''}
@@ -642,26 +663,29 @@ class IPScannerApp {
 
     async createNetworkVisualization() {
         try {
-            const response = await this.makeApiCall('/api/network-visualization', {
-                method: 'POST',
-                body: JSON.stringify({ devices: this.scanResults })
-            });
-
-            if (response.success) {
-                const networkContainer = document.getElementById('networkMap');
-                if (networkContainer) {
-                    networkContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> Ağ haritası oluşturuldu
-                        </div>
-                        <a href="${response.html_file}" target="_blank" class="btn btn-primary">
-                            <i class="fas fa-external-link-alt"></i> Ağ Haritasını Görüntüle
-                        </a>
-                    `;
+            console.log('Ağ haritası oluşturuluyor...');
+            const response = await this.makeApiCall('/api/network-map');
+            console.log('Network map response:', response);
+            
+            if (response.status === 'ok' && response.network_map) {
+                const container = document.getElementById('networkMapContainer');
+                if (container) {
+                    container.innerHTML = response.network_map;
+                    this.showNotification('Ağ haritası oluşturuldu', 'success');
+                } else {
+                    console.error('Network map container bulunamadı');
+                    this.showNotification('Ağ haritası container bulunamadı', 'error');
                 }
+            } else if (response.error) {
+                console.error('Network map error:', response.error);
+                this.showNotification(response.error, 'error');
+            } else {
+                console.error('Unexpected response format:', response);
+                this.showNotification('Ağ haritası oluşturulamadı', 'error');
             }
         } catch (error) {
             console.error('Network visualization failed:', error);
+            this.showNotification('Ağ haritası oluşturulamadı: ' + error.message, 'error');
         }
     }
 
@@ -672,62 +696,62 @@ class IPScannerApp {
                 body: JSON.stringify({ devices: this.scanResults })
             });
 
-            if (response.success) {
-                // Download file
+            if (response.download_url) {
+                // Dosyayı indir
                 const link = document.createElement('a');
-                link.href = response.file_url;
-                link.download = `scan_results_${new Date().toISOString().slice(0, 10)}.${format}`;
+                link.href = response.download_url;
+                link.download = `network_scan_${format}_${new Date().toISOString().split('T')[0]}.${format}`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
+                
                 this.showNotification(`${format.toUpperCase()} dosyası indirildi`, 'success');
             } else {
                 this.showNotification('Dosya indirme başarısız', 'error');
             }
         } catch (error) {
             console.error('Export failed:', error);
+            this.showNotification('Dışa aktarma başarısız', 'error');
         }
     }
 
     async generateReport() {
         try {
-            const response = await this.makeApiCall('/api/generate-report', {
+            const reportType = document.getElementById('reportTypeSelect')?.value || 'html';
+            const email = document.getElementById('reportEmail')?.value;
+
+            const reportData = {
+                devices: this.scanResults,
+                report_type: reportType
+            };
+
+            if (email) {
+                reportData.email = email;
+            }
+
+            const response = await this.makeApiCall('/api/generate-reports', {
                 method: 'POST',
-                body: JSON.stringify({ devices: this.scanResults })
+                body: JSON.stringify(reportData)
             });
 
             if (response.success) {
                 this.showNotification('Rapor oluşturuldu', 'success');
                 
-                // Show report modal
-                const reportModal = document.getElementById('reportModal');
-                if (reportModal) {
-                    const modalBody = reportModal.querySelector('.modal-body');
-                    modalBody.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
-                            <h5>Rapor Hazır!</h5>
-                            <p>Tarama raporunuz başarıyla oluşturuldu.</p>
-                            <div class="d-grid gap-2">
-                                <a href="${response.pdf_url}" target="_blank" class="btn btn-danger">
-                                    <i class="fas fa-download"></i> PDF İndir
-                                </a>
-                                <a href="${response.html_url}" target="_blank" class="btn btn-primary">
-                                    <i class="fas fa-eye"></i> HTML Görüntüle
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                    
-                    const bsModal = new bootstrap.Modal(reportModal);
-                    bsModal.show();
+                if (response.download_url) {
+                    // Raporu indir
+                    const link = document.createElement('a');
+                    link.href = response.download_url;
+                    link.download = `network_report_${new Date().toISOString().split('T')[0]}.${reportType}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             } else {
                 this.showNotification('Rapor oluşturma başarısız', 'error');
             }
         } catch (error) {
             console.error('Report generation failed:', error);
+            this.showNotification('Rapor oluşturma başarısız', 'error');
         }
     }
 
@@ -811,24 +835,36 @@ class IPScannerApp {
     checkAuthStatus() {
         const token = this.getAuthToken();
         if (token) {
-            // Validate token
+            // Token varsa doğrula
             this.validateToken(token);
         } else {
+            // Token yoksa login sayfasına yönlendir
             this.showLoginPage();
         }
     }
 
     async validateToken(token) {
         try {
-            const response = await this.makeApiCall('/api/auth/profile');
-            if (response.status === 'ok') {
-                this.currentUser = response.user;
-                this.showDashboard();
+            const response = await this.makeApiCall('/api/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.status === 'ok' || response.user) {
+                this.currentUser = response.user || response;
+                // Token geçerli, dashboard'da kal
+                if (window.location.pathname !== '/') {
+                    this.showDashboard();
+                }
+                return Promise.resolve();
             } else {
                 this.handleLogout();
+                return Promise.reject('Invalid token');
             }
         } catch (error) {
+            console.error('Token validation failed:', error);
             this.handleLogout();
+            return Promise.reject(error);
         }
     }
 
@@ -862,7 +898,33 @@ class IPScannerApp {
     }
 
     showDashboard() {
-        window.location.href = '/';
+        // Dashboard zaten yüklüyse sadece gerekli güncellemeleri yap
+        if (window.location.pathname === '/') {
+            // Sayfa zaten dashboard'da, sadece içeriği güncelle
+            this.loadDashboardData();
+        } else {
+            // Dashboard'a yönlendir
+            window.location.href = '/';
+        }
+    }
+
+    async loadDashboardData() {
+        // Dashboard verilerini yükle
+        try {
+            // Kullanıcı bilgilerini al
+            const response = await this.makeApiCall('/api/auth/profile');
+            if (response.user) {
+                this.currentUser = response.user;
+                
+                // Kullanıcı bilgilerini UI'da göster
+                const usernameElement = document.getElementById('username');
+                if (usernameElement) {
+                    usernameElement.textContent = this.currentUser.username;
+                }
+            }
+        } catch (error) {
+            console.error('Dashboard data loading failed:', error);
+        }
     }
 
     redirectToDashboard() {
@@ -873,6 +935,120 @@ class IPScannerApp {
         const loginTab = document.getElementById('login-tab');
         if (loginTab) {
             loginTab.click();
+        }
+    }
+
+    showNetworkMap() {
+        if (this.scanResults.length === 0) {
+            this.showNotification('Önce tarama yapın', 'warning');
+            return;
+        }
+
+        // Network map modal'ını aç
+        const networkMapModal = document.getElementById('networkMapModal');
+        if (networkMapModal) {
+            const modal = new bootstrap.Modal(networkMapModal);
+            modal.show();
+            
+            // Network visualization'ı oluştur
+            this.createNetworkVisualization();
+        } else {
+            console.error('Network map modal bulunamadı');
+            this.showNotification('Ağ haritası modal bulunamadı', 'error');
+        }
+    }
+
+    showReportModal() {
+        if (this.scanResults.length === 0) {
+            this.showNotification('Önce tarama yapın', 'warning');
+            return;
+        }
+
+        // Report modal'ını aç
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        reportModal.show();
+    }
+
+    async refreshDevices() {
+        if (this.scanResults.length === 0) {
+            this.showNotification('Yenilenecek cihaz yok', 'info');
+            return;
+        }
+
+        try {
+            const response = await this.makeApiCall('/api/devices');
+            if (response.devices) {
+                this.scanResults = response.devices;
+                this.displayScanResults();
+                this.updateStats();
+                this.showNotification('Cihazlar yenilendi', 'success');
+            }
+        } catch (error) {
+            console.error('Refresh failed:', error);
+            this.showNotification('Yenileme sırasında hata oluştu', 'error');
+        }
+    }
+
+    showExportOptions() {
+        if (this.scanResults.length === 0) {
+            this.showNotification('Dışa aktarılacak veri yok', 'warning');
+            return;
+        }
+
+        // Export modal'ını aç
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+        exportModal.show();
+    }
+
+    showProfileModal() {
+        // Profile modal'ını aç
+        const profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
+        profileModal.show();
+    }
+
+    showSettingsModal() {
+        // Settings modal'ını aç
+        const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+        settingsModal.show();
+    }
+
+    updateStats() {
+        const totalDevices = this.scanResults.length;
+        const onlineDevices = this.scanResults.filter(d => d.status === 'Aktif').length;
+        const openPorts = this.scanResults.reduce((sum, d) => sum + (d.open_ports?.length || 0), 0);
+
+        document.getElementById('totalDevices').textContent = totalDevices;
+        document.getElementById('onlineDevices').textContent = onlineDevices;
+        document.getElementById('openPorts').textContent = openPorts;
+        document.getElementById('scanTime').textContent = '0s'; // Bu değer tarama sırasında güncellenebilir
+    }
+
+    async saveSettings() {
+        try {
+            const settings = {
+                theme: document.getElementById('themeSelect')?.value || 'light',
+                language: document.getElementById('languageSelect')?.value || 'tr',
+                email_notifications: document.getElementById('emailNotifications')?.checked || false
+            };
+
+            const response = await this.makeApiCall('/api/auth/settings', {
+                method: 'PUT',
+                body: JSON.stringify(settings)
+            });
+
+            if (response.success) {
+                this.showNotification('Ayarlar kaydedildi', 'success');
+                
+                // Tema ve dil değişikliklerini uygula
+                if (settings.theme) {
+                    document.documentElement.setAttribute('data-bs-theme', settings.theme);
+                }
+            } else {
+                this.showNotification('Ayar kaydetme başarısız', 'error');
+            }
+        } catch (error) {
+            console.error('Settings save failed:', error);
+            this.showNotification('Ayar kaydetme başarısız', 'error');
         }
     }
 }

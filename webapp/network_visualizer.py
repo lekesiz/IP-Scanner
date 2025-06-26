@@ -138,6 +138,9 @@ class NetworkVisualizer:
     
     def _create_html_template(self, nodes_data: List[Dict], edges_data: List[Dict]) -> str:
         """HTML template oluşturur"""
+        nodes_json = json.dumps(nodes_data)
+        edges_json = json.dumps(edges_data)
+        
         html_template = f"""
 <!DOCTYPE html>
 <html lang="tr">
@@ -220,8 +223,8 @@ class NetworkVisualizer:
     
     <script type="text/javascript">
         // Network verisi
-        var nodes = new vis.DataSet({json.dumps(nodes_data)});
-        var edges = new vis.DataSet({json.dumps(edges_data)});
+        var nodes = new vis.DataSet({nodes_json});
+        var edges = new vis.DataSet({edges_json});
         
         // Network konfigürasyonu
         var data = {{

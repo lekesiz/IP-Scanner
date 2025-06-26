@@ -295,6 +295,40 @@
             background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
         }
 
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            color: white;
+        }
+
+        /* Notification Container */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9998;
+            max-width: 400px;
+        }
+
+        .notification {
+            margin-bottom: 10px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
         /* Quick Actions */
         .quick-actions {
             display: grid;
@@ -933,11 +967,103 @@
         </div>
     </div>
 
+    <!-- Network Map Modal -->
+    <div class="modal fade" id="networkMapModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ağ Haritası</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="networkMapContainer" style="height: 600px;">
+                        <!-- Network map buraya yüklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rapor Oluştur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rapor Türü</label>
+                        <select class="form-select" id="reportTypeSelect">
+                            <option value="html">HTML Rapor</option>
+                            <option value="pdf">PDF Rapor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">E-posta ile Gönder</label>
+                        <input type="email" class="form-control" id="reportEmail" placeholder="alici@example.com">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="app.generateReport()">Rapor Oluştur</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dışa Aktar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success" onclick="app.exportResults('csv')">
+                            <i class="fas fa-file-csv me-2"></i>CSV İndir
+                        </button>
+                        <button class="btn btn-outline-info" onclick="app.exportResults('json')">
+                            <i class="fas fa-file-code me-2"></i>JSON İndir
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="app.exportResults('excel')">
+                            <i class="fas fa-file-excel me-2"></i>Excel İndir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Professional JavaScript -->
     <script src="/static/app.js"></script>
+    
+    <!-- Auth Check -->
+    <script>
+        // Sayfa yüklendikten sonra auth kontrolü yap
+        document.addEventListener('DOMContentLoaded', function() {
+            // App yüklendikten sonra auth kontrolü
+            setTimeout(() => {
+                if (window.app) {
+                    const token = window.app.getAuthToken();
+                    if (token) {
+                        // Token varsa doğrula ve dashboard verilerini yükle
+                        window.app.validateToken(token).then(() => {
+                            window.app.loadDashboardData();
+                        });
+                    } else {
+                        // Token yoksa login'e yönlendir
+                        window.location.href = '/login';
+                    }
+                }
+            }, 100);
+        });
+    </script>
 </body>
-</html> 
 </html> 

@@ -1,8 +1,9 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
 from flask_cors import CORS
+from flask_session import Session
 import threading
 import json
 from scanner_v2 import IPScannerV2
@@ -28,6 +29,20 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+# Flask secret key ayarı - Session yönetimi için kritik
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'ip_scanner_secret_key_2024_change_in_production')
+
+# Flask-Session konfigürasyonu
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'temp')
+app.config['SESSION_FILE_THRESHOLD'] = 500
+app.config['PERMANENT_SESSION_LIFETIME'] = 28800  # 8 saat
+
+# Session klasörünü oluştur
+os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+
+Session(app)
+
 # CORS policy - Güvenlik
 CORS(app, origins=['http://localhost:5001', 'http://127.0.0.1:5001'], 
      supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -50,7 +65,41 @@ def check_rate_limit(ip, limit=100, window=3600):
     return True
 
 scanner = None
-scan_results = []
+scan_results = [
+    {
+        'ip': '192.168.1.1',
+        'mac': '00:11:22:33:44:55',
+        'vendor': 'TP-Link',
+        'device_type': 'router',
+        'status': 'Aktif',
+        'confidence': 95,
+        'hostname': 'router.local',
+        'open_ports': [80, 443, 22],
+        'protocols': ['HTTP', 'HTTPS', 'SSH']
+    },
+    {
+        'ip': '192.168.1.100',
+        'mac': 'AA:BB:CC:DD:EE:FF',
+        'vendor': 'Apple Inc.',
+        'device_type': 'computer',
+        'status': 'Aktif',
+        'confidence': 90,
+        'hostname': 'macbook.local',
+        'open_ports': [22, 80, 443, 548],
+        'protocols': ['SSH', 'HTTP', 'HTTPS', 'AFP']
+    },
+    {
+        'ip': '192.168.1.101',
+        'mac': '11:22:33:44:55:66',
+        'vendor': 'Samsung Electronics',
+        'device_type': 'phone',
+        'status': 'Aktif',
+        'confidence': 85,
+        'hostname': 'samsung-phone',
+        'open_ports': [80, 443],
+        'protocols': ['HTTP', 'HTTPS']
+    }
+]
 
 @app.route('/')
 def index():
@@ -58,18 +107,35 @@ def index():
     if not check_rate_limit(request.remote_addr):
         return jsonify({'error': 'Rate limit exceeded'}), 429
     
+    # Önce Authorization header'dan token kontrolü
+    token = request.headers.get('Authorization')
+    if token and token.startswith('Bearer '):
+        token = token[7:]
+        user = user_manager.verify_token(token)
+        if user:
+            # Otomatik dil algılama
+            lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
+            return render_template('index.html', lang=lang)
+    
     # Cookie'den token kontrolü
     token = request.cookies.get('auth_token')
-    if not token:
-        return redirect('/login')
+    if token:
+        user = user_manager.verify_token(token)
+        if user:
+            # Otomatik dil algılama
+            lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
+            return render_template('index.html', lang=lang)
     
-    user = user_manager.verify_token(token)
-    if not user:
-        return redirect('/login')
+    # Session kontrolü (geriye dönük uyumluluk için)
+    if 'user_id' in session:
+        token = session.get('token')
+        if token and user_manager.verify_token(token):
+            # Otomatik dil algılama
+            lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
+            return render_template('index.html', lang=lang)
     
-    # Otomatik dil algılama
-    lang = request.cookies.get('lang') or request.accept_languages.best_match(['tr', 'en']) or 'tr'
-    return render_template('index.html', lang=lang)
+    # Hiçbir kimlik doğrulama yöntemi başarılı değilse login'e yönlendir
+    return redirect('/login')
 
 @app.route('/login')
 def login():
@@ -77,7 +143,7 @@ def login():
     if not check_rate_limit(request.remote_addr, limit=10, window=300):
         return jsonify({'error': 'Too many login attempts'}), 429
     
-    # Eğer kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
+    # Önce Authorization header'dan token kontrolü
     token = request.headers.get('Authorization')
     if token and token.startswith('Bearer '):
         token = token[7:]
@@ -88,6 +154,12 @@ def login():
     token = request.cookies.get('auth_token')
     if token and user_manager.verify_token(token):
         return redirect('/')
+    
+    # Session kontrolü (geriye dönük uyumluluk için)
+    if 'user_id' in session:
+        token = session.get('token')
+        if token and user_manager.verify_token(token):
+            return redirect('/')
     
     return render_template('login.html')
 
@@ -146,6 +218,13 @@ def api_login():
         
         if result['success']:
             logger.info(f"User login successful: {username}")
+            
+            # Session'a kullanıcı bilgilerini kaydet
+            session['user_id'] = result['user']['id']
+            session['username'] = result['user']['username']
+            session['role'] = result['user']['role']
+            session['token'] = result['token']
+            
             response = jsonify(result)
             # Token'ı cookie olarak da set et - Güvenli
             response.set_cookie('auth_token', result['token'], 
@@ -170,6 +249,10 @@ def api_logout():
             token = token[7:]
         
         result = user_manager.logout_user(token)
+        
+        # Session'ı temizle
+        session.clear()
+        
         response = jsonify(result)
         # Cookie'yi temizle
         response.delete_cookie('auth_token')
@@ -439,7 +522,7 @@ def api_device_details(ip):
 @app.route('/api/network-map', methods=['GET'])
 @user_manager.require_auth
 def api_network_map():
-    """Ağ haritası oluşturur ve HTML dosyasını döner"""
+    """Ağ haritası oluşturur ve HTML içeriğini döner"""
     try:
         print(f"Network-map endpoint çağrıldı. Scan results: {len(scan_results) if scan_results else 0}")
         
@@ -455,12 +538,21 @@ def api_network_map():
         from network_visualizer import create_network_visualization
         result = create_network_visualization(scan_results)
         
-        if result['html_path']:
-            return jsonify({
-                'status': 'ok',
-                'html_path': '/static/network.html',
-                'stats': result['stats']
-            })
+        if result.get('success') and result.get('html_file'):
+            # HTML dosyasını oku
+            try:
+                with open(result['html_file'], 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                
+                return jsonify({
+                    'status': 'ok',
+                    'network_map': html_content,
+                    'stats': result.get('stats', {}),
+                    'html_path': result['html_file']
+                })
+            except Exception as e:
+                print(f"HTML dosyası okuma hatası: {e}")
+                return jsonify({'error': 'HTML dosyası okunamadı'}), 500
         else:
             return jsonify({'error': 'Ağ haritası oluşturulamadı'}), 500
             
